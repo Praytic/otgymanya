@@ -79,3 +79,26 @@ test('history expands workouts and preserves recorded exercise order',async({pag
  await page.getByRole('button',{name:'Next completed exercise'}).click();
  await expect(page.getByRole('heading',{name:'Bench Press'})).toBeVisible();
 });
+
+test('stats uses expandable exercise blocks instead of pages',async({page})=>{
+ const stats=[
+  {exerciseId:'bench',exerciseName:'Bench Press',period:'all',sessions:4,firstWeight:'100',latestWeight:'120',bestWeight:'125',change:'20',changePercent:'20%',lastPerformed:'2026-08-31'},
+  {exerciseId:'row',exerciseName:'Bent Over Row',period:'all',sessions:3,firstWeight:'80',latestWeight:'90',bestWeight:'90',change:'10',changePercent:'12.5%',lastPerformed:'2026-08-31'},
+ ];
+ await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions:[{id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''}],exercises:[],workouts:[],stats}}));
+ await page.goto('/');
+ await page.locator('.rail').evaluate(element=>element.scrollTo({left:element.clientWidth*2}));
+ await expect(page.getByRole('heading',{name:'Stats'})).toBeInViewport();
+ const bench=page.getByRole('button',{name:'Bench Press'});
+ const row=page.getByRole('button',{name:'Bent Over Row'});
+ await expect(bench).toHaveAttribute('aria-expanded','false');
+ await expect(row).toHaveAttribute('aria-expanded','false');
+ await expect(page.locator('.pagination')).toHaveCount(0);
+ await bench.click();
+ await expect(bench).toHaveAttribute('aria-expanded','true');
+ await expect(page.getByText('125 lb')).toBeVisible();
+ await row.click();
+ await expect(bench).toHaveAttribute('aria-expanded','false');
+ await expect(row).toHaveAttribute('aria-expanded','true');
+ await expect(page.getByText('90 lb').first()).toBeVisible();
+});

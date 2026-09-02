@@ -48,7 +48,12 @@ h3{font-size:20px;margin:0}
 .periods{margin-bottom:24px}
 .periods>div{width:100%}
 .periods button{flex:1;min-width:0}
+.stats-list{display:grid;gap:12px}
+.stat-block{border:1px solid #d8d8d8;border-radius:12px;overflow:hidden}
+.stat-row{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;border:0;background:#fff;color:inherit;padding:16px;text-align:left;font:inherit;cursor:pointer}
+.stat-details{border-top:1px solid #e2e2e2;padding:16px}
 .stat dl{display:grid;grid-template-columns:1fr 1fr;gap:24px 16px;margin:24px 0 0}
+.stat-details dl{margin:0}
 .stat dl div{display:flex;flex-direction:column}
 .stat dt{color:#545454}
 .stat dd{font-size:22px;margin:4px 0;font-weight:700}
