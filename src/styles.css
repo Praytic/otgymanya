@@ -20,13 +20,19 @@ h3{font-size:20px;margin:0}
 .exercise-copy{display:flex;min-width:0;flex:1;flex-direction:column;gap:4px}
 .exercise-icon{display:block;width:52px;height:52px;flex:0 0 auto;border-radius:8px;background:#526f75;object-fit:contain}
 .exercise-row small{color:#545454;font-size:14px}
-.lucide-icon{display:block;width:24px;height:24px;flex:0 0 auto;stroke-width:2}
+.lucide-icon{display:block;width:24px;height:24px;flex:0 0 auto;stroke-width:2;background:transparent}
+.icon-button,.icon-button:hover,.icon-button:focus,.icon-button:active,.icon-button:disabled{background:transparent!important}
+.text-icon-button{display:flex!important;align-items:center;gap:8px}
 .exercise-details{border-top:1px solid #e2e2e2;padding:16px}
-.exercise-actions{display:flex;justify-content:flex-end}
+.exercise-actions{display:flex;justify-content:flex-start;border-top:1px solid #e2e2e2;margin-top:16px;padding-top:12px}
 .set-head,.set-row{display:grid;grid-template-columns:44px 1fr 1fr;gap:12px;align-items:center;margin:8px 0}
 .set-head{font-size:14px;color:#545454}
-.set-actions{display:flex;justify-content:flex-end;gap:8px;margin:8px 0 12px}
+.set-actions{display:flex;justify-content:flex-end;gap:8px;margin:8px 0}
 .set-actions button{min-width:52px;justify-content:center}
+.comment-area{display:grid;gap:8px}
+.comment-area>button{justify-self:start}
+.removed-exercise{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid #d8d8d8;border-radius:12px;padding:10px 16px;color:#545454}
+.removed-empty{margin-top:0}
 .submit-row{display:flex;align-items:center;gap:16px;padding-bottom:16px}
 .comment{border-left:2px solid #a6a6a6;padding-left:12px}
 .history-list{display:grid;gap:12px}
@@ -48,6 +54,7 @@ h3{font-size:20px;margin:0}
 .pagination{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-top:24px!important;padding-bottom:max(0px,env(safe-area-inset-bottom));max-width:680px!important}
 .pagination.no-count{grid-template-columns:1fr 1fr}
 .pagination strong{text-align:center}
+.pagination button:first-child{justify-self:start}
 .pagination button:last-child{justify-self:end}
 .markdown{font-size:16px;line-height:1.6}
 .markdown h1{margin-top:0}

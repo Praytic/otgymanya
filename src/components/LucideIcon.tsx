@@ -23,5 +23,5 @@ export type LucideIconName=keyof typeof icons;
 
 export function LucideIcon({name}:{name:LucideIconName}){
  const Icon=icons[name];
- return <Icon className="lucide-icon" aria-hidden="true"/>;
+ return <Icon className="lucide-icon" fill="none" aria-hidden="true"/>;
 }
