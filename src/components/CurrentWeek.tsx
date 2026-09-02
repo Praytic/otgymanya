@@ -1,10 +1,10 @@
-import {useEffect,useMemo,useState} from 'react';
+import {useMemo,useState} from 'react';
 import {Input} from 'baseui/input';
 import {Textarea} from 'baseui/textarea';
 import {Button} from 'baseui/button';
 import type {ComponentType} from 'react';
 import type {RoutineExercise,RoutineVersion,WorkoutSet} from '../types';
-import {dateForDay} from '../lib/date';
+import {cycleWeek,localISO,mondayOf} from '../lib/date';
 import {LucideIcon} from './LucideIcon';
 import {ExerciseIcon} from './ExerciseIcon';
 
@@ -13,13 +13,27 @@ const BaseTextarea=Textarea as unknown as ComponentType<any>;
 type DraftSet={reps:string;weight:string};
 type DraftExercise={exercise:RoutineExercise;sets:DraftSet[];comment:string;removed?:boolean};
 
-interface Props{version:RoutineVersion;week:number;monday:Date;exercises:RoutineExercise[];workouts:WorkoutSet[];onSubmit:(date:string,rows:WorkoutSet[])=>Promise<void>}
-export function CurrentWeek({version,week,monday,exercises,workouts,onSubmit}:Props){
- const days=useMemo(()=>{const active=exercises.filter(e=>e.versionId===version.id&&week>=e.weekFrom&&week<=e.weekTo).sort((a,b)=>a.dayOrder-b.dayOrder||a.exerciseOrder-b.exerciseOrder); return [...new Set(active.map(e=>e.dayOrder))].map(order=>active.filter(e=>e.dayOrder===order))},[version,week,exercises]);
- const [page,setPage]=useState(0); useEffect(()=>setPage(p=>Math.min(p,Math.max(days.length-1,0))),[days.length]); const day=days[page];
- if(!day)return <><header><span className="eyebrow">Week {week} of {version.cycleWeeks}</span><h1>Current week</h1></header><p className="empty">No exercises this week.</p></>;
- const date=dateForDay(day[0].dayOfWeek,monday);
- return <><header className="compact-header"><span className="eyebrow">Week {week} of {version.cycleWeeks}</span><h1>Current week</h1><p>{day[0].dayName}<br/><time>{date} · 12:15–1:15 PM</time></p></header><DayEditor key={`${date}:${day.map(e=>e.exerciseId).join(':')}`} day={day} date={date} version={version} week={week} existing={workouts.filter(w=>w.sessionDate===date)} onSubmit={onSubmit}/>{days.length>1&&<Pager page={page} count={days.length} label="workout day" onPage={setPage} hideCount/>}</>;
+interface Props{version:RoutineVersion;exercises:RoutineExercise[];workouts:WorkoutSet[];onSubmit:(date:string,rows:WorkoutSet[])=>Promise<void>;today?:Date}
+export function CurrentWeek({version,exercises,workouts,onSubmit,today=new Date()}:Props){
+ const workout=useMemo(()=>nextWorkout(version,exercises,today),[version,exercises,localISO(today)]);
+ if(!workout)return <><header><h1>Today</h1></header><p className="empty">No upcoming workouts.</p></>;
+ const {day,date,week,isToday}=workout;
+ return <><header className="compact-header"><span className="eyebrow">Week {week} of {version.cycleWeeks}</span><h1>{isToday?"Today's workout":'Next workout'}</h1><p>{day[0].dayName}<br/><time>{date} · 12:15–1:15 PM</time></p></header><DayEditor key={`${date}:${day.map(e=>e.exerciseId).join(':')}`} day={day} date={date} version={version} week={week} existing={workouts.filter(w=>w.sessionDate===date)} onSubmit={onSubmit}/></>;
+}
+
+export function nextWorkout(version:RoutineVersion,exercises:RoutineExercise[],today:Date){
+ const start=new Date(today); start.setHours(12,0,0,0);
+ const routineExercises=exercises.filter(exercise=>exercise.versionId===version.id);
+ for(let offset=0;offset<version.cycleWeeks*7;offset++){
+  const candidate=new Date(start); candidate.setDate(candidate.getDate()+offset);
+  const date=localISO(candidate);
+  if(date<version.effectiveFrom||version.effectiveTo&&date>version.effectiveTo)continue;
+  const week=cycleWeek(version,mondayOf(candidate));
+  const dayOfWeek=(candidate.getDay()+6)%7+1;
+  const day=routineExercises.filter(exercise=>exercise.dayOfWeek===dayOfWeek&&week>=exercise.weekFrom&&week<=exercise.weekTo).sort((a,b)=>a.exerciseOrder-b.exerciseOrder);
+  if(day.length)return {day,date,week,isToday:offset===0};
+ }
+ return undefined;
 }
 function DayEditor({day,date,version,week,existing,onSubmit}:{day:RoutineExercise[];date:string;version:RoutineVersion;week:number;existing:WorkoutSet[];onSubmit:(date:string,rows:WorkoutSet[])=>Promise<void>}){
  const initial=()=>day.filter(exercise=>existing.length===0||existing.some(row=>row.exerciseId===exercise.exerciseId)).map(exercise=>{const saved=existing.filter(row=>row.exerciseId===exercise.exerciseId).sort((a,b)=>a.setNumber-b.setNumber); const count=saved.length||Math.max(exercise.sets,1); return {exercise,sets:Array.from({length:count},(_,i)=>({reps:saved[i]?.reps||'',weight:saved[i]?.weight||''})),comment:saved[0]?.comment||''}});
