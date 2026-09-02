@@ -14,17 +14,27 @@ h1{font-size:36px;line-height:1.1;letter-spacing:-1px;margin:0 0 8px}
 h2{font-size:24px;line-height:1.2;margin:0 0 8px}
 h3{font-size:20px;margin:0}
 .eyebrow,time,.exercise-title span{color:#545454;font-size:14px}
-.exercise-title{display:flex;justify-content:space-between;gap:16px}
-.exercise-title p{margin:0 0 16px;color:#545454}
-.exercise-title button{align-self:flex-start}
 .day-editor{display:grid;gap:18px;padding-bottom:24px}
+.current-exercise{border:1px solid #d8d8d8;border-radius:12px;overflow:hidden}
+.exercise-row{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;border:0;background:#fff;color:inherit;padding:16px;text-align:left;font:inherit;cursor:pointer}
+.exercise-row>span:first-child{display:flex;flex-direction:column;gap:4px}
+.exercise-row small{color:#545454;font-size:14px}
+.exercise-details{border-top:1px solid #e2e2e2;padding:16px}
+.exercise-actions{display:flex;justify-content:flex-end}
 .set-head,.set-row{display:grid;grid-template-columns:44px 1fr 1fr;gap:12px;align-items:center;margin:8px 0}
 .set-head{font-size:14px;color:#545454}
 .set-actions{display:flex;justify-content:flex-end;gap:8px;margin:8px 0 12px}
 .set-actions button{min-width:52px}
 .submit-row{display:flex;align-items:center;gap:16px;padding-bottom:16px}
 .comment{border-left:2px solid #a6a6a6;padding-left:12px}
-.history-card h2{margin-top:8px}
+.history-list{display:grid;gap:12px}
+.history-workout{border:1px solid #d8d8d8;border-radius:12px;overflow:hidden}
+.history-row{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;border:0;background:#fff;color:inherit;padding:16px;text-align:left;font:inherit;cursor:pointer}
+.history-row>span{display:flex;flex-direction:column;gap:4px}
+.history-row>span:last-child{align-items:flex-end;color:#545454;white-space:nowrap}
+.history-row time{color:#545454;font-size:14px}
+.history-details{border-top:1px solid #e2e2e2;padding:16px}
+.history-card h2{margin-top:0}
 .history-sets p{display:flex;justify-content:space-between;border-top:1px solid #e2e2e2;padding:12px 0;margin:0}
 .periods{margin-bottom:24px}
 .periods>div{width:100%}
@@ -42,5 +52,4 @@ h3{font-size:20px;margin:0}
 .markdown a{color:inherit}
 .empty{color:#545454;text-align:center;margin-top:25vh}
 .state{display:grid;place-content:center;min-height:100dvh;gap:16px;text-align:center;padding:24px}
-.refreshing{position:fixed;z-index:20;top:8px;left:50%;transform:translateX(-50%);padding:8px 14px;border-radius:20px;background:#000;color:#fff;font-size:14px}
 @media(max-width:480px){.view{padding:20px 16px 40px}.periods button{padding-left:6px;padding-right:6px}}
