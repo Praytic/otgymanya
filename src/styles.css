@@ -1,0 +1,42 @@
+:root{font-family:Arial,sans-serif;color:#000;background:#fff;font-synthesis:none}
+*{box-sizing:border-box}
+html,body,#root{height:100%;overflow:hidden}
+body{margin:0}
+.app{height:100dvh;overflow:hidden}
+.topnav{position:fixed;z-index:10;inset:0 0 auto;display:flex;justify-content:center;padding:12px 16px;background:#fff;border-bottom:1px solid #e2e2e2}
+.topnav>div{width:min(100%,680px)}
+.topnav button{flex:1;min-width:0}
+.rail{display:flex;width:100%;height:100dvh;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.view{position:relative;flex:0 0 100vw;height:100dvh;min-height:0;scroll-snap-align:start;overflow:hidden;padding:88px 24px 24px}
+.view>*{max-width:680px;margin-left:auto;margin-right:auto}
+.view.markdown{overflow-y:auto;overscroll-behavior-y:contain;padding-bottom:48px}
+header{margin-bottom:24px}
+.compact-header p{margin:8px 0 0;line-height:1.5}
+h1{font-size:36px;line-height:1.1;letter-spacing:-1px;margin:0 0 8px}
+h2{font-size:24px;line-height:1.2;margin:0 0 8px}
+h3{font-size:20px;margin:0}
+.eyebrow,time,.exercise-title span{color:#545454;font-size:14px}
+.exercise-title{display:flex;justify-content:space-between;gap:16px}
+.exercise-title p{margin:0 0 16px;color:#545454}
+.set-head,.set-row{display:grid;grid-template-columns:44px 1fr 1fr;gap:12px;align-items:center;margin:8px 0}
+.set-head{font-size:14px;color:#545454}
+.comment{border-left:2px solid #a6a6a6;padding-left:12px}
+.history-card h2{margin-top:8px}
+.history-sets p{display:flex;justify-content:space-between;border-top:1px solid #e2e2e2;padding:12px 0;margin:0}
+.periods{margin-bottom:24px}
+.periods>div{width:100%}
+.periods button{flex:1;min-width:0}
+.stat dl{display:grid;grid-template-columns:1fr 1fr;gap:24px 16px;margin:24px 0 0}
+.stat dl div{display:flex;flex-direction:column}
+.stat dt{color:#545454}
+.stat dd{font-size:22px;margin:4px 0;font-weight:700}
+.pagination{position:absolute;left:24px;right:24px;bottom:max(24px,env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;max-width:680px!important}
+.pagination strong{text-align:center}
+.pagination button:last-child{justify-self:end}
+.markdown{font-size:16px;line-height:1.6}
+.markdown h1{margin-top:0}
+.markdown a{color:inherit}
+.empty{color:#545454;text-align:center;margin-top:25vh}
+.state{display:grid;place-content:center;min-height:100dvh;gap:16px;text-align:center;padding:24px}
+@media(max-width:480px){.topnav{padding:8px}.topnav button{padding-left:8px;padding-right:8px}.view{padding:80px 16px 16px}.pagination{left:16px;right:16px}.periods button{padding-left:6px;padding-right:6px}}

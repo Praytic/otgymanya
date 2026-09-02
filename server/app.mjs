@@ -1,0 +1,27 @@
+import express from 'express';
+import path from 'node:path';
+
+export function spreadsheetId(){
+ const value=process.env.GOOGLE_SHEETS_ID;
+ if(!value)throw new Error('GOOGLE_SHEETS_ID is required');
+ return value;
+}
+const READ_RANGES=['Routine Versions!A2:F','Routine Exercises!A2:N','Workout Log!A2:L','Stats!A2:J'];
+function sheetDate(value){const input=String(value||''); const match=input.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); return match?`${match[3]}-${match[1].padStart(2,'0')}-${match[2].padStart(2,'0')}`:input}
+const text=(value,max=500)=>{if(typeof value!=='string'||value.length>max)throw Object.assign(new Error('Invalid text value'),{status:400});return value};
+const number=(value,min,max)=>{if(!Number.isSafeInteger(value)||value<min||value>max)throw Object.assign(new Error('Invalid number value'),{status:400});return value};
+
+export function createApp({sheets,staticDir,sheetId=spreadsheetId()}={}){
+ if(!sheets)throw new Error('Sheets client is required'); const app=express(); app.disable('x-powered-by'); app.use(express.json({limit:'8kb'}));
+ app.get('/api/health/live',(_req,res)=>res.json({status:'ok'}));
+ app.get('/api/v1/bootstrap',async(_req,res,next)=>{try{const result=await sheets.spreadsheets.values.batchGet({spreadsheetId:sheetId,ranges:READ_RANGES}); const rows=i=>result.data.valueRanges?.[i]?.values??[];
+  res.json({versions:rows(0).map(r=>({id:r[0]||'',name:r[1]||'',effectiveFrom:sheetDate(r[2]),effectiveTo:sheetDate(r[3]),cycleWeeks:Number(r[4])||1,notes:r[5]||''})),exercises:rows(1).map(r=>({versionId:r[0]||'',weekFrom:Number(r[1]),weekTo:Number(r[2]),dayOfWeek:Number(r[3]),dayName:r[4]||'',dayOrder:Number(r[5]),exerciseId:r[6]||'',exerciseName:r[7]||'',exerciseOrder:Number(r[8]),sets:Number(r[9]),targetReps:r[10]||'',restSeconds:Number(r[11]),equipment:r[12]||'',instructions:r[13]||''})),workouts:rows(2).map(r=>({recordId:r[0]||'',sessionDate:sheetDate(r[1]),versionId:r[2]||'',cycleWeek:Number(r[3]),dayName:r[4]||'',exerciseId:r[5]||'',exerciseName:r[6]||'',setNumber:Number(r[7]),reps:r[8]||'',weight:r[9]||'',comment:r[10]||'',updatedAt:r[11]||''})),stats:rows(3).map(r=>({exerciseId:r[0]||'',exerciseName:r[1]||'',period:r[2]||'',sessions:r[3]||'',firstWeight:r[4]||'',latestWeight:r[5]||'',bestWeight:r[6]||'',change:r[7]||'',changePercent:r[8]||'',lastPerformed:sheetDate(r[9])}))});
+ }catch(e){next(e)}});
+ app.post('/api/v1/results',async(req,res,next)=>{try{const v=req.body??{}; const row=[text(v.recordId,200),text(v.sessionDate,10),text(v.versionId,100),number(v.cycleWeek,1,100),text(v.dayName,100),text(v.exerciseId,100),text(v.exerciseName,150),number(v.setNumber,1,100),text(v.reps,20),text(v.weight,20),text(v.comment,2000),text(v.updatedAt,50)];
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(row[1])||!/^\d*(\.\d+)?$/.test(row[8])||!/^\d*(\.\d+)?$/.test(row[9]))throw Object.assign(new Error('Invalid workout values'),{status:400});
+  const ids=await sheets.spreadsheets.values.get({spreadsheetId:sheetId,range:'Workout Log!A2:A'}); const index=(ids.data.values??[]).findIndex(r=>r[0]===row[0]);
+  if(index>=0)await sheets.spreadsheets.values.update({spreadsheetId:sheetId,range:`Workout Log!A${index+2}:L${index+2}`,valueInputOption:'RAW',requestBody:{values:[row]}}); else await sheets.spreadsheets.values.append({spreadsheetId:sheetId,range:'Workout Log!A:L',valueInputOption:'RAW',insertDataOption:'INSERT_ROWS',requestBody:{values:[row]}}); res.status(204).end();
+ }catch(e){next(e)}});
+ if(staticDir){app.use(express.static(staticDir)); app.get(/.*/,(_req,res)=>res.sendFile(path.join(staticDir,'index.html')))}
+ app.use((e,_req,res,_next)=>{const status=e.status||500; res.status(status).json({error:{code:status===400?'INVALID_RESULT':'SHEETS_ERROR',message:status===400?e.message:'Google Sheets request failed'}})}); return app;
+}

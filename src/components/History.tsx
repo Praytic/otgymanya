@@ -1,0 +1,5 @@
+import {useMemo,useState} from 'react';
+import {Card} from 'baseui/card';
+import type {WorkoutSet} from '../types';
+import {Pager} from './CurrentWeek';
+export function History({workouts}:{workouts:WorkoutSet[]}){const items=useMemo(()=>{const keys=[...new Set(workouts.map(w=>`${w.sessionDate}:${w.exerciseId}`))].sort().reverse(); return keys.map(key=>workouts.filter(w=>`${w.sessionDate}:${w.exerciseId}`===key).sort((a,b)=>a.setNumber-b.setNumber))},[workouts]); const [page,setPage]=useState(0); const rows=items[page]; return <><header className="compact-header"><h1>History</h1><p>Recorded workouts</p></header>{!rows?<p className="empty">No workouts recorded yet.</p>:<><Card><article className="history-card"><time>{rows[0].sessionDate}</time><h2>{rows[0].exerciseName}</h2><div className="history-sets">{rows.map(r=><p key={r.setNumber}><strong>Set {r.setNumber}</strong><span>{r.weight||'—'} lb × {r.reps||'—'}</span></p>)}</div>{rows[0].comment&&<p className="comment">{rows[0].comment}</p>}</article></Card><Pager page={page} count={items.length} label="history item" onPage={setPage}/></>}</>}
