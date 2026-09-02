@@ -29,6 +29,7 @@ h3{font-size:20px;margin:0}
 .exercise-actions{display:flex;justify-content:flex-start;border-top:1px solid #e2e2e2;margin-top:16px;padding-top:12px}
 .set-head,.set-row{display:grid;grid-template-columns:44px 1fr 1fr;gap:12px;align-items:center;margin:8px 0}
 .set-head{font-size:14px;color:#545454}
+.suggested-value input{color:#777!important}
 .set-actions{display:flex;justify-content:flex-end;gap:8px;margin:8px 0}
 .set-actions button{min-width:52px;justify-content:center}
 .comment-area{display:grid;gap:8px}
@@ -68,4 +69,5 @@ h3{font-size:20px;margin:0}
 .markdown a{color:inherit}
 .empty{color:#545454;text-align:center;margin-top:25vh}
 .state{display:grid;place-content:center;min-height:100dvh;gap:16px;text-align:center;padding:24px}
+.offline-notice{position:fixed;z-index:2;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:4px;background:#f1f1f1;border:1px solid #c8c8c8;border-radius:8px;padding:2px 8px;font-size:13px;white-space:nowrap}
 @media(max-width:480px){.view{padding:20px 16px 40px}.periods button{padding-left:6px;padding-right:6px}}

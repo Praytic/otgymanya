@@ -1,4 +1,7 @@
 import {test,expect} from '@playwright/test';
+const cachedVersion={id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''};
+const cachedExercise={versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:3,dayName:'Wednesday — Strength',dayOrder:1,exerciseId:'bench',exerciseName:'Bench Press',exerciseOrder:1,sets:2,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:'',guidance:''};
+const cachedWorkout=(reps:string,weight:string)=>({recordId:'2026-09-02:bench:1',sessionDate:'2026-09-02',versionId:'v1',cycleWeek:6,dayName:'Wednesday — Strength',exerciseId:'bench',exerciseName:'Bench Press',setNumber:1,reps,weight,comment:'',updatedAt:'2026-09-02T12:00:00.000Z'});
 test('mobile workout editor groups a day and submits it as one replacement',async({page})=>{
  await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
  let writes=0;
@@ -52,6 +55,7 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  await page.getByRole('button',{name:'Submit workout'}).click();
  await expect.poll(()=>writes).toBe(1);
  await expect(page.getByText('Submitted')).toBeVisible();
+ expect(await page.evaluate(()=>Object.keys(localStorage).some(key=>key.startsWith('gym-tracker:workout-draft:')))).toBe(false);
  await page.reload();
  await page.getByRole('button',{name:/Bench Press/}).click();
  await expect(page.getByLabel('Bench Press set 2 reps')).toHaveCount(0);
@@ -69,6 +73,45 @@ test('shows the next upcoming workout when today is a rest day',async({page})=>{
  await expect(page.getByText(/2026-09-04/)).toBeVisible();
  await expect(page.getByRole('button',{name:'Squat'})).toBeVisible();
  await expect(page.getByLabel(/workout day/)).toHaveCount(0);
+});
+
+test('local draft survives reload and overrides refreshed Sheet values',async({page})=>{
+ await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
+ let sheetWeight='100';
+ await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions:[cachedVersion],exercises:[cachedExercise],workouts:[cachedWorkout('5',sheetWeight)],stats:[]}}));
+ await page.goto('/');
+ await page.getByRole('button',{name:/Bench Press/}).click();
+ const reps=page.getByLabel('Bench Press set 1 reps');
+ const weight=page.getByLabel('Bench Press set 1 weight');
+ await expect(reps).toHaveValue('5');
+ await expect(reps.evaluate(input=>getComputedStyle(input).color)).resolves.toBe('rgb(119, 119, 119)');
+ await reps.focus();
+ await expect(reps).toHaveValue('');
+ await reps.fill('6');
+ await weight.focus();
+ await weight.fill('135');
+ sheetWeight='225';
+ await page.reload();
+ await page.getByRole('button',{name:/Bench Press/}).click();
+ await expect(reps).toHaveValue('6');
+ await expect(weight).toHaveValue('135');
+ await expect(weight.evaluate(input=>getComputedStyle(input).color)).resolves.not.toBe('rgb(119, 119, 119)');
+ await page.getByRole('button',{name:'Submit workout'}).click();
+ await expect(page.getByText('Submit failed — try again')).toBeVisible();
+ await page.reload();
+ await page.getByRole('button',{name:/Bench Press/}).click();
+ await expect(reps).toHaveValue('6');
+ await expect(weight).toHaveValue('135');
+});
+
+test('cached Sheet snapshot remains usable when refresh is offline',async({page})=>{
+ await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
+ await page.addInitScript(cache=>localStorage.setItem('gym-tracker:sheet-cache:v1',JSON.stringify(cache)),{versions:[cachedVersion],exercises:[cachedExercise],workouts:[cachedWorkout('5','100')],stats:[]});
+ await page.route('**/api/v1/bootstrap',route=>route.abort('internetdisconnected'));
+ await page.goto('/');
+ await expect(page.getByRole('heading',{name:"Today's workout"})).toBeInViewport();
+ await expect(page.getByRole('status')).toContainText('Offline · showing saved data');
+ await expect(page.getByRole('button',{name:/Bench Press/})).toBeVisible();
 });
 
 test('history expands workouts and preserves recorded exercise order',async({page})=>{
