@@ -11,6 +11,8 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  await expect(page.locator('nav')).toHaveCount(0);
  await expect.poll(()=>page.locator('.rail').evaluate(e=>e.scrollLeft)).toBeGreaterThan(300);
  await expect(page.getByRole('heading',{name:'Current week'})).toBeInViewport();
+ const rootOverflow=await page.evaluate(()=>({html:getComputedStyle(document.documentElement).overflowY,body:getComputedStyle(document.body).overflowY}));
+ expect(rootOverflow).toEqual({html:'visible',body:'visible'});
  await expect(page.getByRole('button',{name:/Bench Press/})).toBeVisible();
  await expect(page.getByRole('button',{name:/Bent Over Row/})).toBeVisible();
  await expect(page.locator('.view').nth(1).evaluate(view=>getComputedStyle(view).overflowY)).resolves.toBe('auto');
