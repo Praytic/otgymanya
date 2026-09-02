@@ -32,4 +32,6 @@ The API has no user login. Keep it on a trusted private network unless you add a
 
 ## Artwork
 
-Interface emojis are from [OpenMoji](https://openmoji.org/), the open-source emoji and icon project, and are licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+Interface icons are from [Lucide](https://lucide.dev/) and are licensed under the [ISC License](https://lucide.dev/license).
+
+Exercise artwork is from [Workout Guide](https://bryllim.github.io/workout-guide/): original artwork by [Everkinetic](https://github.com/everkinetic/data), expanded by [Bryl Lim](https://bryllim.com/), and licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

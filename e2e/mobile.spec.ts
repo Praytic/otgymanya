@@ -31,7 +31,7 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  await page.getByRole('button',{name:/Bent Over Row/}).click();
  await page.getByLabel('Remove Bent Over Row').click();
  await expect(page.getByRole('button',{name:/Bent Over Row/})).toHaveCount(0);
- await expect(page.locator('.emoji-icon')).not.toHaveCount(0);
+ await expect(page.locator('.lucide-icon')).not.toHaveCount(0);
  await expect(page.locator('.view').nth(1).evaluate(view=>view.scrollWidth<=view.clientWidth)).resolves.toBe(true);
  await page.getByRole('button',{name:'Submit workout'}).click();
  await expect.poll(()=>writes).toBe(1);

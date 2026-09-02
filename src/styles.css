@@ -17,9 +17,10 @@ h3{font-size:20px;margin:0}
 .day-editor{display:grid;gap:18px;padding-bottom:24px}
 .current-exercise{border:1px solid #d8d8d8;border-radius:12px;overflow:hidden}
 .exercise-row{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;border:0;background:#fff;color:inherit;padding:16px;text-align:left;font:inherit;cursor:pointer}
-.exercise-row>span:first-child{display:flex;flex-direction:column;gap:4px}
+.exercise-copy{display:flex;min-width:0;flex:1;flex-direction:column;gap:4px}
+.exercise-icon{display:block;width:52px;height:52px;flex:0 0 auto;border-radius:8px;background:#526f75;object-fit:contain}
 .exercise-row small{color:#545454;font-size:14px}
-.emoji-icon{display:block;width:28px;height:28px;flex:0 0 auto}
+.lucide-icon{display:block;width:24px;height:24px;flex:0 0 auto;stroke-width:2}
 .exercise-details{border-top:1px solid #e2e2e2;padding:16px}
 .exercise-actions{display:flex;justify-content:flex-end}
 .set-head,.set-row{display:grid;grid-template-columns:44px 1fr 1fr;gap:12px;align-items:center;margin:8px 0}
