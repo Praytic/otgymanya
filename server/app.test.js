@@ -13,4 +13,16 @@ describe('server',()=>{
   await request(createApp({sheets,sheetId:'test'})).post('/api/v1/results').send(result).expect(204);
   expect(update).toHaveBeenCalledWith(expect.objectContaining({valueInputOption:'RAW'}));
  });
+ it('replaces every row for a submitted session date and verifies the sheet',async()=>{
+  let stored=[['old-other','2026-01-01','v1','1','Day','other','Other','1','8','50','','old'],['old-set-1','2026-01-02','v1','1','Day','exercise','Exercise','1','5','100','','old'],['old-set-2','2026-01-02','v1','1','Day','exercise','Exercise','2','5','100','','old']];
+  const get=vi.fn().mockImplementation(()=>Promise.resolve({data:{values:stored}}));
+  const update=vi.fn().mockImplementation(({requestBody})=>{stored=requestBody.values;return Promise.resolve({})});
+  const clear=vi.fn().mockResolvedValue({});
+  const sheets={spreadsheets:{values:{get,update,clear}}};
+  const row={recordId:'new-set-1',sessionDate:'2026-01-02',versionId:'v1',cycleWeek:1,dayName:'Day',exerciseId:'exercise',exerciseName:'Exercise',setNumber:1,reps:'6',weight:'105',comment:'done',updatedAt:'2026-01-02T00:00:00.000Z'};
+  await request(createApp({sheets,sheetId:'test'})).post('/api/v1/results/session').send({sessionDate:'2026-01-02',results:[row]}).expect(204);
+  expect(update).toHaveBeenCalledWith(expect.objectContaining({valueInputOption:'RAW',requestBody:{values:[expect.arrayContaining(['old-other']),expect.arrayContaining(['new-set-1'])]}}));
+  expect(clear).toHaveBeenCalled();
+  expect(get).toHaveBeenCalledTimes(2);
+ });
 });

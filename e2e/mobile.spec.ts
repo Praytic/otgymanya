@@ -1,18 +1,25 @@
 import {test,expect} from '@playwright/test';
-test('four-view mobile flow starts on Current and saves a set',async({page})=>{
+test('mobile workout editor groups a day and submits it as one replacement',async({page})=>{
  let writes=0;
- await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions:[{id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''}],exercises:[{versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:1,dayName:'Monday — Strength',dayOrder:1,exerciseId:'bench',exerciseName:'Bench Press',exerciseOrder:1,sets:5,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:''}],workouts:[],stats:[]}}));
- await page.route('**/api/v1/results',r=>{writes++; return r.fulfill({status:204})});
+ await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions:[{id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''}],exercises:[{versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:1,dayName:'Monday — Strength',dayOrder:1,exerciseId:'bench',exerciseName:'Bench Press',exerciseOrder:1,sets:2,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:''},{versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:1,dayName:'Monday — Strength',dayOrder:1,exerciseId:'row',exerciseName:'Bent Over Row',exerciseOrder:2,sets:2,targetReps:'8–12',restSeconds:90,equipment:'Barbell',instructions:''}],workouts:[],stats:[]}}));
+ await page.route('**/api/v1/results/session',r=>{writes++; return r.fulfill({status:204})});
  await page.goto('/');
- await expect(page.locator('nav').getByRole('button')).toHaveCount(4);
+ await expect(page.locator('nav')).toHaveCount(0);
  await expect.poll(()=>page.locator('.rail').evaluate(e=>e.scrollLeft)).toBeGreaterThan(300);
  await expect(page.getByRole('heading',{name:'Current week'})).toBeInViewport();
- await expect(page.locator('footer')).toHaveCount(0);
- await expect(page.locator('nav')).not.toContainText('Menu');
- await expect.poll(()=>page.locator('.view').evaluateAll(views=>views.slice(0,3).every(view=>getComputedStyle(view).overflowY==='hidden'&&view.scrollHeight===view.clientHeight))).toBe(true);
+ await expect(page.getByRole('heading',{name:'Bench Press'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Bent Over Row'})).toBeVisible();
+ await expect(page.locator('.view').nth(1).evaluate(view=>getComputedStyle(view).overflowY)).resolves.toBe('auto');
+ await expect(page.locator('.pagination strong')).toHaveCount(0);
  await page.getByLabel('Bench Press set 1 reps').fill('5');
  await page.getByLabel('Bench Press set 1 weight').fill('135');
- await expect.poll(()=>writes).toBe(5);
- await page.getByRole('button',{name:'Context'}).click();
- await expect(page.getByRole('heading',{name:'About the app'})).toBeInViewport();
+ await page.getByLabel('Remove set from Bench Press').click();
+ await expect(page.getByLabel('Remove set from Bench Press')).toBeDisabled();
+ await page.getByLabel('Add set to Bench Press').click();
+ await expect(page.getByLabel('Bench Press set 2 reps')).toBeVisible();
+ await page.getByLabel('Remove Bent Over Row').click();
+ await expect(page.getByRole('heading',{name:'Bent Over Row'})).toHaveCount(0);
+ await page.getByRole('button',{name:'Submit workout'}).click();
+ await expect.poll(()=>writes).toBe(1);
+ await expect(page.getByText('Submitted')).toBeVisible();
 });
