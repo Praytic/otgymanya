@@ -1,6 +1,7 @@
 import {useMemo,useState} from 'react';
 import type {WorkoutSet} from '../types';
 import {Pager} from './CurrentWeek';
+import {EmojiIcon} from './EmojiIcon';
 
 type RecordedExercise={id:string;name:string;sets:WorkoutSet[]};
 type RecordedWorkout={date:string;dayName:string;exercises:RecordedExercise[]};
@@ -33,7 +34,7 @@ export function History({workouts}:{workouts:WorkoutSet[]}){
   return <section className="history-workout" key={workout.date}>
    <button className="history-row" type="button" aria-expanded={isExpanded} aria-controls={panelId} onClick={()=>toggle(workout.date)}>
     <span><time>{workout.date}</time><strong>{workout.dayName||'Workout'}</strong></span>
-    <span>{workout.exercises.length} exercise{workout.exercises.length===1?'':'s'} <span aria-hidden="true">{isExpanded?'−':'+'}</span></span>
+    <span>{workout.exercises.length} exercise{workout.exercises.length===1?'':'s'} <EmojiIcon name={isExpanded?'collapse':'expand'}/></span>
    </button>
    {isExpanded&&exercise&&<div className="history-details" id={panelId}>
     <article className="history-card"><h2>{exercise.name}</h2><div className="history-sets">{exercise.sets.map((row,index)=><p key={row.recordId||index}><strong>Set {row.setNumber}</strong><span>{row.weight||'—'} lb × {row.reps||'—'}</span></p>)}</div>{comment&&<p className="comment">{comment}</p>}</article>

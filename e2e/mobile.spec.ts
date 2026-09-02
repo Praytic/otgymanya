@@ -17,6 +17,10 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  await expect(page.locator('.pagination strong')).toHaveCount(0);
  await expect(page.getByLabel('Bench Press set 1 reps')).toHaveCount(0);
  await page.getByRole('button',{name:/Bench Press/}).click();
+ await expect(page.getByLabel('Bench Press comment')).toHaveCount(0);
+ await page.getByRole('button',{name:'Add comment for Bench Press'}).click();
+ await expect(page.getByLabel('Bench Press comment')).toBeVisible();
+ await page.getByLabel('Bench Press comment').fill('Strong set');
  await page.getByLabel('Bench Press set 1 reps').fill('5');
  await page.getByLabel('Bench Press set 1 weight').fill('135');
  await page.getByLabel('Remove set from Bench Press').click();
@@ -27,6 +31,8 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  await page.getByRole('button',{name:/Bent Over Row/}).click();
  await page.getByLabel('Remove Bent Over Row').click();
  await expect(page.getByRole('button',{name:/Bent Over Row/})).toHaveCount(0);
+ await expect(page.locator('.emoji-icon')).not.toHaveCount(0);
+ await expect(page.locator('.view').nth(1).evaluate(view=>view.scrollWidth<=view.clientWidth)).resolves.toBe(true);
  await page.getByRole('button',{name:'Submit workout'}).click();
  await expect.poll(()=>writes).toBe(1);
  await expect(page.getByText('Submitted')).toBeVisible();

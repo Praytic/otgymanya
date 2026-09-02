@@ -19,19 +19,20 @@ h3{font-size:20px;margin:0}
 .exercise-row{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;border:0;background:#fff;color:inherit;padding:16px;text-align:left;font:inherit;cursor:pointer}
 .exercise-row>span:first-child{display:flex;flex-direction:column;gap:4px}
 .exercise-row small{color:#545454;font-size:14px}
+.emoji-icon{display:block;width:28px;height:28px;flex:0 0 auto}
 .exercise-details{border-top:1px solid #e2e2e2;padding:16px}
 .exercise-actions{display:flex;justify-content:flex-end}
 .set-head,.set-row{display:grid;grid-template-columns:44px 1fr 1fr;gap:12px;align-items:center;margin:8px 0}
 .set-head{font-size:14px;color:#545454}
 .set-actions{display:flex;justify-content:flex-end;gap:8px;margin:8px 0 12px}
-.set-actions button{min-width:52px}
+.set-actions button{min-width:52px;justify-content:center}
 .submit-row{display:flex;align-items:center;gap:16px;padding-bottom:16px}
 .comment{border-left:2px solid #a6a6a6;padding-left:12px}
 .history-list{display:grid;gap:12px}
 .history-workout{border:1px solid #d8d8d8;border-radius:12px;overflow:hidden}
 .history-row{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;border:0;background:#fff;color:inherit;padding:16px;text-align:left;font:inherit;cursor:pointer}
 .history-row>span{display:flex;flex-direction:column;gap:4px}
-.history-row>span:last-child{align-items:flex-end;color:#545454;white-space:nowrap}
+.history-row>span:last-child{align-items:center;color:#545454;white-space:nowrap;flex-direction:row;gap:8px}
 .history-row time{color:#545454;font-size:14px}
 .history-details{border-top:1px solid #e2e2e2;padding:16px}
 .history-card h2{margin-top:0}

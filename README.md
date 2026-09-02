@@ -29,3 +29,7 @@ npm run test:e2e
 ```
 
 The API has no user login. Keep it on a trusted private network unless you add authentication.
+
+## Artwork
+
+Interface emojis are from [OpenMoji](https://openmoji.org/), the open-source emoji and icon project, and are licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
