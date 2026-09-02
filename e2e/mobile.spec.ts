@@ -3,7 +3,7 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
  let writes=0;
  const versions=[{id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''}];
- const exercises=[{versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:3,dayName:'Wednesday — Strength',dayOrder:1,exerciseId:'bench',exerciseName:'Bench Press',exerciseOrder:1,sets:2,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:''},{versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:3,dayName:'Wednesday — Strength',dayOrder:1,exerciseId:'row',exerciseName:'Bent Over Row',exerciseOrder:2,sets:2,targetReps:'8–12',restSeconds:90,equipment:'Barbell',instructions:''},{versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:5,dayName:'Friday — Strength',dayOrder:2,exerciseId:'squat',exerciseName:'Squat',exerciseOrder:1,sets:2,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:''}];
+ const exercises=[{versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:3,dayName:'Wednesday — Strength',dayOrder:1,exerciseId:'bench',exerciseName:'Bench Press',exerciseOrder:1,sets:2,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:'',guidance:'Work up through warm-up sets to a heavy 3–5-rep max.'},{versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:3,dayName:'Wednesday — Strength',dayOrder:1,exerciseId:'row',exerciseName:'Bent Over Row',exerciseOrder:2,sets:2,targetReps:'8–12',restSeconds:90,equipment:'Barbell',instructions:'',guidance:'Pair this pull with face pulls.'},{versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:5,dayName:'Friday — Strength',dayOrder:2,exerciseId:'squat',exerciseName:'Squat',exerciseOrder:1,sets:2,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:'',guidance:'Work up to a heavy set.'}];
  const saved=(exerciseId:string,exerciseName:string,setNumber:number)=>({recordId:`2026-09-02:${exerciseId}:${setNumber}`,sessionDate:'2026-09-02',versionId:'v1',cycleWeek:6,dayName:'Wednesday — Strength',exerciseId,exerciseName,setNumber,reps:'5',weight:'100',comment:'',updatedAt:'2026-09-02T12:00:00.000Z'});
  let workouts=[saved('bench','Bench Press',1),saved('bench','Bench Press',2),saved('row','Bent Over Row',1),saved('row','Bent Over Row',2)];
  await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions,exercises,workouts,stats:[]}}));
@@ -20,6 +20,7 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  await expect(page.getByLabel(/workout day/)).toHaveCount(0);
  await expect(page.getByLabel('Bench Press set 1 reps')).toHaveCount(0);
  await page.getByRole('button',{name:/Bench Press/}).click();
+ await expect(page.getByText('Work up through warm-up sets to a heavy 3–5-rep max.')).toBeVisible();
  await expect(page.getByLabel('Bench Press comment')).toHaveCount(0);
  await page.getByRole('button',{name:'Add comment for Bench Press'}).click();
  await expect(page.getByLabel('Bench Press comment')).toBeVisible();
