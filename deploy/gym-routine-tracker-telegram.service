@@ -1,0 +1,15 @@
+[Unit]
+Description=Gym routine tracker Telegram client
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/github.com/Praytic/gym-routine-tracker
+EnvironmentFile=%h/.config/gym-routine-tracker/telegram.env
+ExecStart=/usr/bin/node telegram/index.mjs
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

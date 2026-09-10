@@ -18,6 +18,10 @@ h3{font-size:20px;margin:0}
 .day-editor{display:grid;gap:18px;padding-bottom:24px}
 .current-exercise{border:1px solid #d8d8d8;border-radius:12px;overflow:hidden}
 .exercise-row{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;border:0;background:#fff;color:inherit;padding:16px;text-align:left;font:inherit;cursor:pointer}
+.group-exercises{display:grid;min-width:0;flex:1;gap:12px}
+.group-exercise{display:flex;align-items:center;gap:16px;min-width:0}
+.group-toggle{display:grid;justify-items:center;gap:4px;flex:0 0 auto;color:#545454}
+.group-toggle small{font-size:12px}
 .exercise-copy{display:flex;min-width:0;flex:1;flex-direction:column;gap:4px}
 .exercise-icon{display:block;width:52px;height:52px;flex:0 0 auto;border-radius:8px;background:#526f75;object-fit:contain}
 .exercise-row small{color:#545454;font-size:14px}
@@ -25,6 +29,8 @@ h3{font-size:20px;margin:0}
 .icon-button,.icon-button:hover,.icon-button:focus,.icon-button:active,.icon-button:disabled{background:transparent!important}
 .text-icon-button{display:flex!important;align-items:center;gap:8px}
 .exercise-details{border-top:1px solid #e2e2e2;padding:16px}
+.exercise-group-details>.exercise-details+.exercise-details{border-top:2px solid #bdbdbd}
+.exercise-group-details .exercise-details{margin:0}
 .exercise-guidance{margin:0 0 16px;color:#4b4b4b;font-size:.9rem;line-height:1.45}
 .exercise-actions{display:flex;justify-content:flex-start;border-top:1px solid #e2e2e2;margin-top:16px;padding-top:12px}
 .set-head,.set-row{display:grid;grid-template-columns:44px 1fr 1fr;gap:12px;align-items:center;margin:8px 0}
@@ -35,6 +41,7 @@ h3{font-size:20px;margin:0}
 .comment-area{display:grid;gap:8px}
 .comment-area>button{justify-self:start}
 .removed-exercise{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid #d8d8d8;border-radius:12px;padding:10px 16px;color:#545454}
+.current-exercise .grouped-removed{border-width:1px 0 0;border-radius:0}
 .removed-empty{margin-top:0}
 .submit-row{display:flex;align-items:center;gap:16px;padding-bottom:16px}
 .comment{border-left:2px solid #a6a6a6;padding-left:12px}

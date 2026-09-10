@@ -75,6 +75,48 @@ test('shows the next upcoming workout when today is a rest day',async({page})=>{
  await expect(page.getByLabel(/workout day/)).toHaveCount(0);
 });
 
+test('renders a superset as one expandable row with two editable blocks',async({page})=>{
+ await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
+ const shared={versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:3,dayName:'Wednesday — Strength',dayOrder:1,sets:3,targetReps:'8–12',restSeconds:90,instructions:''};
+ const exercises=[
+  {...shared,exerciseId:'pulldown',exerciseName:'Lat Pulldown',exerciseOrder:1,equipment:'Cable',supersetId:'pull-rear-delt',guidance:'Pair these with reverse flyes as a superset.'},
+  {...shared,exerciseId:'reverse-fly',exerciseName:'Reverse Fly',exerciseOrder:2,equipment:'Dumbbell',supersetId:'pull-rear-delt',guidance:'Pair these with lat pulldowns as a superset.'},
+ ];
+ await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions:[cachedVersion],exercises,workouts:[],stats:[]}}));
+ await page.goto('/');
+ const superset=page.locator('.current-exercise.superset');
+ await expect(superset).toHaveCount(1);
+ await expect(superset.getByRole('button',{name:/Lat Pulldown.*Reverse Fly.*Superset/})).toBeVisible();
+ await expect(page.getByLabel('Lat Pulldown set 1 reps')).toHaveCount(0);
+ await superset.locator('.exercise-row').click();
+ await expect(superset.locator('.exercise-details')).toHaveCount(2);
+ await expect(page.getByLabel('Lat Pulldown set 1 reps')).toBeVisible();
+ await expect(page.getByLabel('Reverse Fly set 1 reps')).toBeVisible();
+ await expect(page.getByLabel('Add comment for Lat Pulldown')).toBeVisible();
+ await expect(page.getByLabel('Add comment for Reverse Fly')).toBeVisible();
+ await expect(page.getByLabel('Remove Lat Pulldown')).toBeVisible();
+ await expect(page.getByLabel('Remove Reverse Fly')).toBeVisible();
+});
+
+test('shows the complete new routine when today has results from an older version',async({page})=>{
+ await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
+ const shared={versionId:'v2',weekFrom:1,weekTo:6,dayOfWeek:3,dayName:'Wednesday — Strength',dayOrder:1,sets:3,targetReps:'8–12',restSeconds:90,instructions:'',supersetId:'pull-pair',guidance:''};
+ const exercises=[
+  {...shared,exerciseId:'pulldown',exerciseName:'Lat Pulldown',exerciseOrder:1,equipment:'Cable'},
+  {...shared,exerciseId:'reverse-fly',exerciseName:'Reverse Fly',exerciseOrder:2,equipment:'Dumbbell'},
+ ];
+ const versions=[{...cachedVersion,id:'v1',effectiveTo:'2026-09-01'},{...cachedVersion,id:'v2',effectiveFrom:'2026-09-02'}];
+ const oldResult={...cachedWorkout('10','80'),versionId:'v1',exerciseId:'pulldown',exerciseName:'Lat Pulldown'};
+ await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions,exercises,workouts:[oldResult],stats:[]}}));
+ await page.goto('/');
+ const superset=page.locator('.current-exercise.superset');
+ await expect(superset).toContainText('Lat Pulldown');
+ await expect(superset).toContainText('Reverse Fly');
+ await superset.locator('.exercise-row').click();
+ await expect(page.getByLabel('Lat Pulldown set 1 reps')).toHaveValue('10');
+ await expect(page.getByLabel('Reverse Fly set 1 reps')).toHaveValue('');
+});
+
 test('local draft survives reload and overrides refreshed Sheet values',async({page})=>{
  await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
  let sheetWeight='100';

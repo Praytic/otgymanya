@@ -20,6 +20,29 @@ The web app runs at `http://localhost:5173`. The API runs at `http://127.0.0.1:8
 
 Use `npm run init:sheet` only with a new, empty Google Sheet.
 
+## Run as a Telegram bot
+
+The Telegram deployment has the same four views and writes to the same Google Sheet. It edits one dashboard message and uses inline keyboards for navigation. Workout values are entered by replying to a short prompt.
+
+Set these variables in addition to `GOOGLE_SHEETS_ID` and Google credentials:
+
+```bash
+TELEGRAM_GYM_BOT_TOKEN=...
+TELEGRAM_GYM_CHAT_ID=...
+```
+
+Then run:
+
+```bash
+npm run start:telegram
+```
+
+The configured chat ID is an allowlist: messages from every other chat are ignored, and foreign button presses are rejected. Unsubmitted workout changes are stored in `~/.local/state/gym-routine-tracker/telegram.json` by default. Only run one polling process for a bot token.
+
+Forum-topic deployments register Current, History, and Context thread IDs in `~/.local/state/gym-routine-tracker/topics.json`. Current contains workout controls and on-demand Stats. History contains one bot post per submitted workout. A new message in Context becomes the latest preference override. The bot must be an administrator or have BotFather privacy mode disabled to receive ordinary group messages; `/context ...` is the privacy-safe command fallback.
+
+For a persistent user service, copy `deploy/gym-routine-tracker-telegram.service` to `~/.config/systemd/user/`, create the private `~/.config/gym-routine-tracker/telegram.env`, then enable the service. The environment file must contain the three variables above plus `GOOGLE_APPLICATION_CREDENTIALS` when Application Default Credentials are not otherwise available.
+
 ## Checks
 
 ```bash

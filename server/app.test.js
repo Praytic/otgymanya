@@ -9,7 +9,7 @@ describe('server',()=>{
  it('adds Sheet-backed program guidance to routine exercises',async()=>{
   const batchGet=vi.fn().mockResolvedValue({data:{valueRanges:[
    {values:[['v1','Routine','2026-01-01','',1,'']]},
-   {values:[['v1',1,1,1,'Day',1,'squat','Squat',1,1,'3–5',180,'Barbell','']]},
+   {values:[['v1',1,1,1,'Day',1,'squat','Squat',1,1,'3–5',180,'Barbell','','lower-a']]},
    {values:[]},
    {values:[]},
    {values:[['squat','Squat','Work up to a heavy 3–5-rep max.']]},
@@ -18,6 +18,7 @@ describe('server',()=>{
   const response=await request(createApp({sheets,sheetId:'test'})).get('/api/v1/bootstrap').expect(200);
   expect(batchGet).toHaveBeenCalledWith(expect.objectContaining({ranges:expect.arrayContaining(['Exercises!A2:C'])}));
   expect(response.body.exercises[0].guidance).toBe('Work up to a heavy 3–5-rep max.');
+  expect(response.body.exercises[0].supersetId).toBe('lower-a');
  });
  it('writes browser input as raw values',async()=>{
   const update=vi.fn().mockResolvedValue({});

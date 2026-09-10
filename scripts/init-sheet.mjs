@@ -15,7 +15,7 @@ await sheets.spreadsheets.batchUpdate({spreadsheetId:sheetId,requestBody:{reques
 const data=[
  {range:'Exercises!A1:C1',values:[['Exercise ID','Exercise Name','Program Guidance']]},
  {range:'Routine Versions!A1:F2',values:[['Version ID','Name','Effective From','Effective To','Cycle Weeks','Notes'],['starter-v1','Starter routine',new Date().toISOString().slice(0,10),'',1,'Add exercises before using the app']]},
- {range:'Routine Exercises!A1:N1',values:[['Version ID','Week From','Week To','Day of Week','Day Name','Day Order','Exercise ID','Exercise Name','Exercise Order','Sets','Target Reps','Rest Seconds','Equipment','Instructions']]},
+ {range:'Routine Exercises!A1:O1',values:[['Version ID','Week From','Week To','Day of Week','Day Name','Day Order','Exercise ID','Exercise Name','Exercise Order','Sets','Target Reps','Rest Seconds','Equipment','Instructions','Superset ID']]},
  {range:'Workout Log!A1:L1',values:[['Record ID','Session Date','Version ID','Cycle Week','Day Name','Exercise ID','Exercise Name','Set Number','Reps','Weight (lb)','Comment','Updated At']]},
  {range:'Stats!A1:J1',values:[['Exercise ID','Exercise Name','Period','Sessions','First Weight','Latest Weight','Best Weight','Change','Change %','Last Performed']]},
 ];
