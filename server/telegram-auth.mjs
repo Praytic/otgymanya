@@ -16,16 +16,11 @@ export function validateInitData(raw,token,now=Math.floor(Date.now()/1000)){
  return user;
 }
 
-export function telegramAuth({token,chatId,api}){
- if(!token||!chatId||!api)throw new Error('Telegram access configuration is required');
- return async(req,res,next)=>{
+export function telegramAuth({token}){
+ if(!token)throw new Error('Telegram access configuration is required');
+ return(req,res,next)=>{
   res.set('Cache-Control','no-store');
-  let user;
-  try{user=validateInitData(req.get('X-Telegram-Init-Data'),token)}catch{return res.status(401).json({error:{message:'Open Gym from Telegram to continue.'}})}
-  try{
-   const member=await api.call('getChatMember',{chat_id:chatId,user_id:user.id});
-   if(!['creator','administrator','member'].includes(member.status)&&!(member.status==='restricted'&&member.is_member))return res.status(403).json({error:{message:'This app is available to Gym group members only.'}});
-   next();
-  }catch{res.status(503).json({error:{message:'Could not verify Gym membership. Please retry.'}})}
+  try{validateInitData(req.get('X-Telegram-Init-Data'),token)}catch{return res.status(401).json({error:{message:'Open Gym from Telegram to continue.'}})}
+  next();
  };
 }
