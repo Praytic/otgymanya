@@ -1,0 +1,10 @@
+import {google} from 'googleapis';
+import path from 'node:path';
+import {createApp} from './app.mjs';
+import {telegramAuth} from './telegram-auth.mjs';
+import {createTelegramApi} from '../telegram/telegram-api.mjs';
+const token=process.env.TELEGRAM_GYM_BOT_TOKEN;
+const apiAuth=telegramAuth({token,chatId:process.env.TELEGRAM_GYM_CHAT_ID,api:createTelegramApi(token)});
+const auth=new google.auth.GoogleAuth({scopes:['https://www.googleapis.com/auth/spreadsheets']});
+const sheets=google.sheets({version:'v4',auth});
+createApp({sheets,staticDir:path.resolve('dist'),apiAuth}).listen(Number(process.env.MINI_APP_PORT||8083),'127.0.0.1',()=>console.log('Gym Mini App listening on loopback'));

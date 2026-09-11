@@ -20,29 +20,6 @@ The web app runs at `http://localhost:5173`. The API runs at `http://127.0.0.1:8
 
 Use `npm run init:sheet` only with a new, empty Google Sheet.
 
-## Run as a Telegram bot
-
-The Telegram deployment has the same four views and writes to the same Google Sheet. It edits one dashboard message and uses inline keyboards for navigation. Workout values are entered by replying to a short prompt.
-
-Set these variables in addition to `GOOGLE_SHEETS_ID` and Google credentials:
-
-```bash
-TELEGRAM_GYM_BOT_TOKEN=...
-TELEGRAM_GYM_CHAT_ID=...
-```
-
-Then run:
-
-```bash
-npm run start:telegram
-```
-
-The configured chat ID is an allowlist: messages from every other chat are ignored, and foreign button presses are rejected. Unsubmitted workout changes are stored in `~/.local/state/gym-routine-tracker/telegram.json` by default. Only run one polling process for a bot token.
-
-Forum-topic deployments register Current, History, and Context thread IDs in `~/.local/state/gym-routine-tracker/topics.json`. Current contains workout controls and on-demand Stats. History contains one bot post per submitted workout. A new message in Context becomes the latest preference override. The bot must be an administrator or have BotFather privacy mode disabled to receive ordinary group messages; `/context ...` is the privacy-safe command fallback.
-
-For a persistent user service, copy `deploy/gym-routine-tracker-telegram.service` to `~/.config/systemd/user/`, create the private `~/.config/gym-routine-tracker/telegram.env`, then enable the service. The environment file must contain the three variables above plus `GOOGLE_APPLICATION_CREDENTIALS` when Application Default Credentials are not otherwise available.
-
 ## Checks
 
 ```bash
@@ -58,3 +35,13 @@ The API has no user login. Keep it on a trusted private network unless you add a
 Interface icons are from [Lucide](https://lucide.dev/) and are licensed under the [ISC License](https://lucide.dev/license).
 
 Exercise artwork is from [Workout Guide](https://bryllim.github.io/workout-guide/): original artwork by [Everkinetic](https://github.com/everkinetic/data), expanded by [Bryl Lim](https://bryllim.com/), and licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+
+## Telegram Mini App
+
+The Mini App reuses the website's four views. `server/mini-app.mjs` serves the same build on loopback port 8083, with Telegram HMAC validation, a 24-hour launch lifetime, and live membership checks against `TELEGRAM_GYM_CHAT_ID` on every data request. Reopen the Mini App after its session expires. Context is loaded through the protected API rather than included in the public JavaScript bundle. The existing private web server remains available separately.
+
+Install `deploy/gym-routine-tracker-mini-app.service` as a user service. Its private environment file at `~/.config/gym-routine-tracker/mini-app.env` must contain `TELEGRAM_GYM_BOT_TOKEN`, `TELEGRAM_GYM_CHAT_ID`, `GOOGLE_SHEETS_ID`, and `GOOGLE_APPLICATION_CREDENTIALS`. Keep it outside Git and readable only by its owner. Run `npm run build`, then enable the service. Expose only the Mini App server through HTTPS, for example on a dedicated Tailscale Funnel port: `sudo tailscale funnel --bg --https=8443 --yes http://127.0.0.1:8083`. Do not expose the private web server, which does not require Telegram authentication.
+
+In BotFather, select the bot and configure its Main Mini App with the HTTPS URL plus `?telegram=1`. Then run `node telegram/setup-mini-app.mjs` with the bot environment and `TELEGRAM_GYM_MINI_APP_URL` set to that URL. Setup verifies endpoint authorization, configures and reads back the private-chat menu, and posts an Open Gym direct-link button in the group's General topic. The message ID is saved outside the repository so rerunning updates the same launcher. Main Mini App registration requires the bot owner's BotFather account; the Bot API cannot perform it. Group launch uses a `startapp` link, since `web_app` buttons and bot menu buttons are for private bot chats.
+
+Telegram interactions run inside the Mini App. The group only needs its General topic and the Open Gym launcher. No polling service, topic registration, message-based workout controls, or Context-post synchronization is used. Keep the bot as a group administrator so membership checks remain reliable. Local edits to `WORKOUT_CONTEXT.md` are read by the protected Context API.
