@@ -8,6 +8,7 @@ import {cycleWeek,localISO,mondayOf} from '../lib/date';
 import {clearWorkoutDraft,loadWorkoutDraft,saveWorkoutDraft,type StoredDraftExercise} from '../lib/localStorage';
 import {LucideIcon} from './LucideIcon';
 import {ExerciseIcon} from './ExerciseIcon';
+import {WorkoutNavigation} from './WorkoutNavigation';
 
 const BaseInput=Input as unknown as ComponentType<any>;
 const BaseTextarea=Textarea as unknown as ComponentType<any>;
@@ -15,19 +16,31 @@ type DraftSet={reps:string;weight:string;repsSuggested:boolean;weightSuggested:b
 type DraftExercise={exercise:RoutineExercise;sets:DraftSet[];comment:string;removed?:boolean};
 type DraftGroup={id:string;items:DraftExercise[];superset:boolean};
 
-interface Props{version:RoutineVersion;exercises:RoutineExercise[];workouts:WorkoutSet[];onSubmit:(date:string,rows:WorkoutSet[])=>Promise<void>;today?:Date}
-export function CurrentWeek({version,exercises,workouts,onSubmit,today=new Date()}:Props){
- const workout=useMemo(()=>nextWorkout(version,exercises,today),[version,exercises,localISO(today)]);
+interface Props{version:RoutineVersion;exercises:RoutineExercise[];workouts:WorkoutSet[];onSubmit:(date:string,rows:WorkoutSet[])=>Promise<void>;today?:Date;active?:boolean}
+export function CurrentWeek({version,exercises,workouts,onSubmit,today=new Date(),active=true}:Props){
+ const [selected,setSelected]=useState<string|null>(null);
+ const upcoming=useMemo(()=>nextWorkout(version,exercises,today),[version,exercises,localISO(today)]);
+ const workout=selected?nextWorkout(version,exercises,new Date(`${selected}T12:00:00`)):upcoming;
+ const adjacent=(direction:-1|1)=>{
+  if(!workout)return;
+  const date=new Date(`${workout.date}T12:00:00`);date.setDate(date.getDate()+direction);
+  return nextWorkout(version,exercises,date,direction);
+ };
+ const previous=adjacent(-1);const next=adjacent(1);
  if(!workout)return <><header><h1>Today</h1></header><p className="empty">No upcoming workouts.</p></>;
- const {day,date,week,isToday}=workout;
- return <><header className="compact-header"><span className="eyebrow">Week {week} of {version.cycleWeeks}</span><h1>{isToday?"Today's workout":'Next workout'}</h1><p>{day[0].dayName}<br/><time>{date} · 12:15–1:15 PM</time></p></header><DayEditor key={`${date}:${day.map(e=>e.exerciseId).join(':')}`} day={day} date={date} version={version} week={week} existing={workouts.filter(w=>w.sessionDate===date)} onSubmit={onSubmit}/></>;
+ const {day,date,week}=workout;
+ const label=(item:typeof workout|undefined)=>item?`${item.day[0].dayName} · ${item.date}`:undefined;
+ return <WorkoutNavigation pageKey={`${version.id}:${date}`} active={active} previous={label(previous)} next={label(next)} onNavigate={direction=>{const target=direction===-1?previous:next;if(target)setSelected(target.date)}}>
+ <header className="compact-header"><span className="eyebrow">Week {week} of {version.cycleWeeks}</span><h1>{date===localISO(today)?"Today's workout":date===upcoming?.date?'Next workout':'Workout'}</h1><p>{day[0].dayName}<br/><time>{date} · 12:15–1:15 PM</time></p></header>
+ <DayEditor key={`${version.id}:${date}:${day.map(e=>e.exerciseId).join(':')}`} day={day} date={date} version={version} week={week} existing={workouts.filter(w=>w.sessionDate===date)} onSubmit={onSubmit}/>
+ </WorkoutNavigation>;
 }
 
-export function nextWorkout(version:RoutineVersion,exercises:RoutineExercise[],today:Date){
+export function nextWorkout(version:RoutineVersion,exercises:RoutineExercise[],today:Date,direction:-1|1=1){
  const start=new Date(today); start.setHours(12,0,0,0);
  const routineExercises=exercises.filter(exercise=>exercise.versionId===version.id);
  for(let offset=0;offset<version.cycleWeeks*7;offset++){
-  const candidate=new Date(start); candidate.setDate(candidate.getDate()+offset);
+  const candidate=new Date(start); candidate.setDate(candidate.getDate()+offset*direction);
   const date=localISO(candidate);
   if(date<version.effectiveFrom||version.effectiveTo&&date>version.effectiveTo)continue;
   const week=cycleWeek(version,mondayOf(candidate));

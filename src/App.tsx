@@ -22,7 +22,7 @@ export default function App(){
  if(!data||!current)return <main className="state">Loading routine…</main>;
  return <div className="app">{stale&&<div className="offline-notice" role="status">Offline · showing saved data <Button kind="tertiary" size="compact" onClick={load}>Retry</Button></div>}<div className="rail" ref={rail} onScroll={e=>{const el=e.currentTarget; clearTimeout(Number(el.dataset.timer)); el.dataset.timer=String(setTimeout(()=>setView(Math.round(el.scrollLeft/el.clientWidth)),80))}}>
    <section className="view" aria-label="History"><History workouts={data.workouts}/></section>
-   <section className="view" aria-label="Current week"><CurrentWeek version={current} exercises={data.exercises} workouts={data.workouts} onSubmit={submit}/></section>
+   <section className="view current-workout-view" aria-label="Current week"><CurrentWeek active={view===1} version={current} exercises={data.exercises} workouts={data.workouts} onSubmit={submit}/></section>
    <section className="view" aria-label="Stats"><Stats stats={data.stats}/></section>
    <section className="view markdown" aria-label="Context"><ReactMarkdown>{contextText}</ReactMarkdown></section>
  </div></div>;

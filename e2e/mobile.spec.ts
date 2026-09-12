@@ -20,7 +20,7 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  await expect(page.getByRole('button',{name:/Bench Press/})).toBeVisible();
  await expect(page.getByRole('button',{name:/Bent Over Row/})).toBeVisible();
  await expect(page.locator('.view').nth(1).evaluate(view=>getComputedStyle(view).overflowY)).resolves.toBe('auto');
- await expect(page.getByLabel(/workout day/)).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'All workout days',exact:true})).toHaveCount(0);
  await expect(page.getByLabel('Bench Press set 1 reps')).toHaveCount(0);
  await page.getByRole('button',{name:/Bench Press/}).click();
  await expect(page.getByText('Work up through warm-up sets to a heavy 3–5-rep max.')).toBeVisible();
@@ -69,10 +69,10 @@ test('shows the next upcoming workout when today is a rest day',async({page})=>{
  await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions,exercises,workouts:[],stats:[]}}));
  await page.goto('/');
  await expect(page.getByRole('heading',{name:'Next workout'})).toBeInViewport();
- await expect(page.getByText('Friday — Strength')).toBeVisible();
+ await expect(page.locator('.compact-header').getByText('Friday — Strength')).toBeVisible();
  await expect(page.getByText(/2026-09-04/)).toBeVisible();
  await expect(page.getByRole('button',{name:'Squat'})).toBeVisible();
- await expect(page.getByLabel(/workout day/)).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'All workout days',exact:true})).toHaveCount(0);
 });
 
 test('renders a superset as one expandable row with two editable blocks',async({page})=>{
@@ -197,4 +197,85 @@ test('stats uses expandable exercise blocks instead of pages',async({page})=>{
  await expect(bench).toHaveAttribute('aria-expanded','false');
  await expect(row).toHaveAttribute('aria-expanded','true');
  await expect(page.getByText('90 lb').first()).toBeVisible();
+});
+
+test('browse workout days, retain drafts, and submit a past or upcoming date',async({page})=>{
+ await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
+ const friday={...cachedExercise,dayOfWeek:5,dayName:'Friday — Strength',exerciseId:'squat',exerciseName:'Squat'};
+ let submitted:any;
+ await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions:[cachedVersion],exercises:[cachedExercise,friday],workouts:[],stats:[]}}));
+ await page.route('**/api/v1/results/session',async r=>{submitted=r.request().postDataJSON();await r.fulfill({status:204})});
+ await page.goto('/');
+ const fridayButton=page.getByRole('button',{name:/Next workout: Friday — Strength.*2026-09-04/});
+ await fridayButton.click();
+ await page.getByRole('button',{name:/Squat.*reps/}).click();
+ await page.getByLabel('Squat set 1 reps').fill('8');
+ await page.getByRole('button',{name:/Previous workout: Wednesday — Strength.*2026-09-02/}).click();
+ await fridayButton.click();
+ await page.getByRole('button',{name:/Squat.*reps/}).click();
+ await expect(page.getByLabel('Squat set 1 reps')).toHaveValue('8');
+ await page.getByRole('button',{name:'Submit workout'}).click();
+ await expect(page.getByText('Submitted',{exact:true})).toBeVisible();
+ expect(submitted.sessionDate).toBe('2026-09-04');
+ expect(submitted.results[0]).toMatchObject({exerciseId:'squat',reps:'8',sessionDate:'2026-09-04'});
+ await page.getByRole('button',{name:/Previous workout: Wednesday/}).click();
+ await page.getByRole('button',{name:/Previous workout: Friday/}).click();
+ await page.getByRole('button',{name:/Previous workout: Wednesday/}).click();
+ await page.getByRole('button',{name:'Submit workout'}).click();
+ await expect(page.getByText('Submitted',{exact:true})).toBeVisible();
+ expect(submitted.sessionDate).toBe('2026-08-26');
+ await expect(page.locator('.view').nth(1).evaluate(view=>view.scrollWidth<=view.clientWidth)).resolves.toBe(true);
+ await page.getByRole('button',{name:/Next workout: Friday/}).click();
+ await page.getByRole('button',{name:/Next workout: Wednesday/}).click();
+ await expect(page.getByRole('heading',{name:"Today's workout"})).toBeVisible();
+});
+
+async function navigationFixture(page:import('@playwright/test').Page){
+ await page.clock.install({time:new Date('2026-09-02T12:00:00')});
+ const friday={...cachedExercise,dayOfWeek:5,dayName:'Friday — Strength',exerciseId:'squat',exerciseName:'Squat'};
+ await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions:[cachedVersion],exercises:[{...cachedExercise,sets:12},friday],workouts:[],stats:[]}}));
+ await page.goto('/');
+ await page.clock.pauseAt(new Date('2026-09-02T12:01:00'));
+}
+async function touch(page:import('@playwright/test').Page,type:string,y:number){
+ await page.locator('[aria-label="Current week"]').evaluate((view,{type,y})=>{
+  const point=new Touch({identifier:1,target:view,clientX:200,clientY:y});
+  view.dispatchEvent(new TouchEvent(type,{bubbles:true,cancelable:true,touches:type==='touchend'?[]:[point]}));
+ },{type,y});
+}
+test('touch pressure needs half a second at an edge and cancels on release',async({page})=>{
+ await navigationFixture(page);
+ await page.getByRole('button',{name:/Bench Press.*reps/}).click();
+ const view=page.locator('[aria-label="Current week"]');
+ await view.evaluate(el=>el.scrollTop=100);
+ await touch(page,'touchstart',600);await touch(page,'touchmove',550);await touch(page,'touchmove',500);
+ await page.clock.runFor(600);
+ await expect(page.getByRole('heading',{name:"Today's workout"})).toBeVisible();
+ await touch(page,'touchend',500);
+ await view.evaluate(el=>el.scrollTop=el.scrollHeight);
+ await touch(page,'touchstart',600);await touch(page,'touchmove',580);await touch(page,'touchmove',530);
+ await page.clock.runFor(499);
+ await expect(page.getByRole('heading',{name:"Today's workout"})).toHaveCount(1);
+ await touch(page,'touchend',530);await page.clock.runFor(600);
+ await expect(page.getByRole('heading',{name:"Today's workout"})).toHaveCount(1);
+ await touch(page,'touchstart',600);await touch(page,'touchmove',580);await touch(page,'touchmove',530);
+ await page.clock.runFor(501);
+ await expect(page.getByRole('button',{name:/Squat.*reps/})).toBeVisible();
+ await touch(page,'touchmove',450);await page.clock.runFor(600);
+ await expect(page.getByRole('button',{name:/Squat.*reps/})).toBeVisible();
+ await touch(page,'touchend',450);
+});
+test('Mac wheel pressure advances once, while ordinary PC wheel does not',async({page})=>{
+ await page.addInitScript(()=>Object.defineProperty(navigator,'platform',{configurable:true,get:()=> 'Win32'}));
+ await navigationFixture(page);
+ const view=page.locator('[aria-label="Current week"]');
+ const wheel=()=>view.dispatchEvent('wheel',{deltaY:50,deltaX:0});
+ await view.evaluate(el=>el.scrollTop=el.scrollHeight);
+ for(let i=0;i<7;i++){await wheel();await page.clock.runFor(100)}
+ await expect(page.getByRole('heading',{name:"Today's workout"})).toHaveCount(1);
+ await page.evaluate(()=>Object.defineProperty(navigator,'platform',{get:()=> 'MacIntel'}));
+ for(let i=0;i<7;i++){await wheel();await page.clock.runFor(100)}
+ await expect(page.getByRole('button',{name:/Squat.*reps/})).toBeVisible();
+ for(let i=0;i<7;i++){await wheel();await page.clock.runFor(100)}
+ await expect(page.getByRole('button',{name:/Squat.*reps/})).toBeVisible();
 });
