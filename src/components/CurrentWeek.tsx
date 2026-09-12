@@ -16,24 +16,37 @@ type DraftSet={reps:string;weight:string;repsSuggested:boolean;weightSuggested:b
 type DraftExercise={exercise:RoutineExercise;sets:DraftSet[];comment:string;removed?:boolean};
 type DraftGroup={id:string;items:DraftExercise[];superset:boolean};
 
-interface Props{version:RoutineVersion;exercises:RoutineExercise[];workouts:WorkoutSet[];onSubmit:(date:string,rows:WorkoutSet[])=>Promise<void>;today?:Date;active?:boolean}
-export function CurrentWeek({version,exercises,workouts,onSubmit,today=new Date(),active=true}:Props){
+interface Props{version:RoutineVersion;versions?:RoutineVersion[];exercises:RoutineExercise[];workouts:WorkoutSet[];onSubmit:(date:string,rows:WorkoutSet[])=>Promise<void>;today?:Date;active?:boolean}
+export function CurrentWeek({version:initialVersion,versions,exercises,workouts,onSubmit,today=new Date(),active=true}:Props){
+ const availableVersions=useMemo(()=>versions??[initialVersion],[versions,initialVersion]);
  const [selected,setSelected]=useState<string|null>(null);
- const upcoming=useMemo(()=>nextWorkout(version,exercises,today),[version,exercises,localISO(today)]);
- const workout=selected?nextWorkout(version,exercises,new Date(`${selected}T12:00:00`)):upcoming;
+ const upcoming=useMemo(()=>scheduledWorkout(availableVersions,exercises,today),[availableVersions,exercises,localISO(today)]);
+ const workout=selected?scheduledWorkout(availableVersions,exercises,new Date(`${selected}T12:00:00`)):upcoming;
  const adjacent=(direction:-1|1)=>{
   if(!workout)return;
   const date=new Date(`${workout.date}T12:00:00`);date.setDate(date.getDate()+direction);
-  return nextWorkout(version,exercises,date,direction);
+  return scheduledWorkout(availableVersions,exercises,date,direction);
  };
  const previous=adjacent(-1);const next=adjacent(1);
  if(!workout)return <><header><h1>Today</h1></header><p className="empty">No upcoming workouts.</p></>;
- const {day,date,week}=workout;
+ const {day,date,week,version}=workout;
  const label=(item:typeof workout|undefined)=>item?`${item.day[0].dayName} · ${item.date}`:undefined;
  return <WorkoutNavigation pageKey={`${version.id}:${date}`} active={active} previous={label(previous)} next={label(next)} onNavigate={direction=>{const target=direction===-1?previous:next;if(target)setSelected(target.date)}}>
  <header className="compact-header"><span className="eyebrow">Week {week} of {version.cycleWeeks}</span><h1>{date===localISO(today)?"Today's workout":date===upcoming?.date?'Next workout':'Workout'}</h1><p>{day[0].dayName}<br/><time>{date} · 12:15–1:15 PM</time></p></header>
  <DayEditor key={`${version.id}:${date}:${day.map(e=>e.exerciseId).join(':')}`} day={day} date={date} version={version} week={week} existing={workouts.filter(w=>w.sessionDate===date)} onSubmit={onSubmit}/>
  </WorkoutNavigation>;
+}
+
+export function scheduledWorkout(versions:RoutineVersion[],exercises:RoutineExercise[],date:Date,direction:-1|1=1){
+ const requested=localISO(date);
+ const candidates=versions.flatMap(version=>{
+  // Search each immutable snapshot within its own effective dates, including gaps.
+  const boundary=direction===1&&requested<version.effectiveFrom?version.effectiveFrom:
+   direction===-1&&version.effectiveTo&&requested>version.effectiveTo?version.effectiveTo:requested;
+  const workout=nextWorkout(version,exercises,new Date(`${boundary}T12:00:00`),direction);
+  return workout?[{...workout,version}]:[];
+ });
+ return candidates.sort((a,b)=>direction*a.date.localeCompare(b.date))[0];
 }
 
 export function nextWorkout(version:RoutineVersion,exercises:RoutineExercise[],today:Date,direction:-1|1=1){

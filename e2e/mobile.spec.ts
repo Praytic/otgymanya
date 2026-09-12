@@ -207,26 +207,26 @@ test('browse workout days, retain drafts, and submit a past or upcoming date',as
  await page.route('**/api/v1/results/session',async r=>{submitted=r.request().postDataJSON();await r.fulfill({status:204})});
  await page.goto('/');
  const fridayButton=page.getByRole('button',{name:/Next workout: Friday — Strength.*2026-09-04/});
- await fridayButton.click();
+ await revealEdge(page,1);await fridayButton.click();
  await page.getByRole('button',{name:/Squat.*reps/}).click();
  await page.getByLabel('Squat set 1 reps').fill('8');
- await page.getByRole('button',{name:/Previous workout: Wednesday — Strength.*2026-09-02/}).click();
- await fridayButton.click();
+ await revealEdge(page,-1);await page.getByRole('button',{name:/Previous workout: Wednesday — Strength.*2026-09-02/}).click();
+ await revealEdge(page,1);await fridayButton.click();
  await page.getByRole('button',{name:/Squat.*reps/}).click();
  await expect(page.getByLabel('Squat set 1 reps')).toHaveValue('8');
  await page.getByRole('button',{name:'Submit workout'}).click();
  await expect(page.getByText('Submitted',{exact:true})).toBeVisible();
  expect(submitted.sessionDate).toBe('2026-09-04');
  expect(submitted.results[0]).toMatchObject({exerciseId:'squat',reps:'8',sessionDate:'2026-09-04'});
- await page.getByRole('button',{name:/Previous workout: Wednesday/}).click();
- await page.getByRole('button',{name:/Previous workout: Friday/}).click();
- await page.getByRole('button',{name:/Previous workout: Wednesday/}).click();
+ await revealEdge(page,-1);await page.getByRole('button',{name:/Previous workout: Wednesday/}).click();
+ await revealEdge(page,-1);await page.getByRole('button',{name:/Previous workout: Friday/}).click();
+ await revealEdge(page,-1);await page.getByRole('button',{name:/Previous workout: Wednesday/}).click();
  await page.getByRole('button',{name:'Submit workout'}).click();
  await expect(page.getByText('Submitted',{exact:true})).toBeVisible();
  expect(submitted.sessionDate).toBe('2026-08-26');
  await expect(page.locator('.view').nth(1).evaluate(view=>view.scrollWidth<=view.clientWidth)).resolves.toBe(true);
- await page.getByRole('button',{name:/Next workout: Friday/}).click();
- await page.getByRole('button',{name:/Next workout: Wednesday/}).click();
+ await revealEdge(page,1);await page.getByRole('button',{name:/Next workout: Friday/}).click();
+ await revealEdge(page,1);await page.getByRole('button',{name:/Next workout: Wednesday/}).click();
  await expect(page.getByRole('heading',{name:"Today's workout"})).toBeVisible();
 });
 
@@ -278,4 +278,78 @@ test('Mac wheel pressure advances once, while ordinary PC wheel does not',async(
  await expect(page.getByRole('button',{name:/Squat.*reps/})).toBeVisible();
  for(let i=0;i<7;i++){await wheel();await page.clock.runFor(100)}
  await expect(page.getByRole('button',{name:/Squat.*reps/})).toBeVisible();
+});
+
+async function revealEdge(page:import('@playwright/test').Page,direction:number){
+ const view=page.locator('[aria-label="Current week"]');
+ await view.evaluate((el,d)=>el.scrollTop=d===1?el.scrollHeight:0,direction);
+ // Allow the prior page transition and gesture lock to settle.
+ await page.waitForTimeout(320);
+ await view.dispatchEvent('wheel',{deltaY:direction*60,deltaX:0});
+}
+test('edge popup stays hidden until an extra scroll and disappears on reversal',async({page})=>{
+ await navigationFixture(page);
+ await page.getByRole('button',{name:/Bench Press.*reps/}).click();
+ const view=page.locator('[aria-label="Current week"]');
+ await expect(page.locator('.workout-edge')).toHaveCount(0);
+ await view.evaluate(el=>el.scrollTop=100);
+ await view.dispatchEvent('wheel',{deltaY:100});
+ await expect(page.locator('.workout-edge')).toHaveCount(0);
+ await view.evaluate(el=>el.scrollTop=el.scrollHeight);
+ await expect(page.locator('.workout-edge')).toHaveCount(0);
+ await view.dispatchEvent('wheel',{deltaY:20});
+ await expect(page.locator('.workout-edge')).toHaveCount(0);
+ await view.dispatchEvent('wheel',{deltaY:30});
+ await expect(page.getByRole('button',{name:/Next workout: Friday/})).toBeVisible();
+ await view.dispatchEvent('wheel',{deltaY:-30});
+ await expect(page.locator('.workout-edge')).toHaveCount(0);
+ await view.evaluate(el=>el.scrollTop=0);
+ await view.dispatchEvent('wheel',{deltaY:-60});
+ await expect(page.getByRole('button',{name:/Previous workout: Friday/})).toBeVisible();
+ await page.screenshot({path:'test-results/workout-edge-popup.png'});
+});
+
+test('native Android touch scrolls content before revealing the next-page popup',async({page,context})=>{
+ await navigationFixture(page);
+ await page.getByRole('button',{name:/Bench Press.*reps/}).click();
+ const view=page.locator('[aria-label="Current week"]');
+ const cdp=await context.newCDPSession(page);
+ const send=(type:string,y:number)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x:30,y}]});
+ await send('touchStart',700);
+ for(const y of [650,600,550,500,450])await send('touchMove',y);
+ await send('touchEnd',450);
+ await expect.poll(()=>view.evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
+ await expect(page.locator('.workout-edge')).toHaveCount(0);
+ await view.evaluate(el=>el.scrollTop=el.scrollHeight);
+ await send('touchStart',700);
+ for(const y of [680,650,620,590])await send('touchMove',y);
+ await expect(page.getByRole('button',{name:/Next workout: Friday/})).toBeVisible();
+ await page.clock.runFor(501);
+ await expect(page.getByRole('button',{name:/Squat.*reps/})).toBeVisible();
+ await send('touchEnd',590);
+});
+
+test('Friday navigates to Wednesday across routine versions and submits its original version',async({page})=>{
+ await page.clock.setFixedTime(new Date('2026-09-11T12:00:00'));
+ const versions=[{...cachedVersion,id:'old',effectiveFrom:'2026-09-02',effectiveTo:'2026-09-09'},{...cachedVersion,id:'current',effectiveFrom:'2026-09-10',effectiveTo:'2026-09-13'},{...cachedVersion,id:'future',effectiveFrom:'2026-09-14'}];
+ const exercises=[{...cachedExercise,versionId:'old'},{...cachedExercise,versionId:'current',dayOfWeek:5,dayName:'Friday — Home Upper',exerciseId:'squat',exerciseName:'Squat'},{...cachedExercise,versionId:'future',dayOfWeek:1,dayName:'Monday — New routine'}];
+ let submitted:any;
+ await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions,exercises,workouts:[],stats:[]}}));
+ await page.route('**/api/v1/results/session',async r=>{submitted=r.request().postDataJSON();await r.fulfill({status:204})});
+ await page.goto('/');
+ await expect(page.locator('.current-workout-view .compact-header')).toContainText('2026-09-11');
+ await revealEdge(page,-1);
+ await page.getByRole('button',{name:/Previous workout: Wednesday.*2026-09-09/}).click({timeout:2500});
+ await expect(page.locator('.current-workout-view .compact-header')).toContainText('2026-09-09');
+ await page.getByRole('button',{name:/Bench Press.*reps/}).click();
+ await page.getByLabel('Bench Press set 1 reps').fill('7');
+ await page.getByRole('button',{name:'Submit workout'}).click();
+ await expect(page.getByText('Submitted',{exact:true})).toBeVisible();
+ expect(submitted.sessionDate).toBe('2026-09-09');
+ expect(submitted.results[0]).toMatchObject({versionId:'old',exerciseId:'bench',reps:'7'});
+ await revealEdge(page,1);
+ await page.getByRole('button',{name:/Next workout: Friday.*2026-09-11/}).click();
+ await revealEdge(page,1);
+ await page.getByRole('button',{name:/Next workout: Monday.*2026-09-14/}).click();
+ await expect(page.locator('.current-workout-view .compact-header')).toContainText('2026-09-14');
 });

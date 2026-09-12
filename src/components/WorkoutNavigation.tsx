@@ -1,42 +1,68 @@
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import type {ReactNode} from 'react';
 
 type Direction=-1|1;
 interface Props{previous?:string;next?:string;pageKey:string;active:boolean;onNavigate:(direction:Direction)=>void;children:ReactNode}
+const EDGE_PX=2;
+const WHEEL_INTENT_PX=48;
+const TOUCH_INTENT_PX=32;
+const PRESS_MS=500;
+const WHEEL_IDLE_MS=180;
 
-// Native scrolling owns the page. Only deliberate pressure beyond an edge turns it.
 export function WorkoutNavigation({previous,next,pageKey,active,onNavigate,children}:Props){
  const root=useRef<HTMLDivElement>(null);
  const gestureLocked=useRef(false);
  const lastWheel=useRef(0);
+ const transition=useRef<Direction|null>(null);
  const navigate=useRef(onNavigate);navigate.current=onNavigate;
- const [pressing,setPressing]=useState<Direction|null>(null);
- useEffect(()=>{
+ const [preview,setPreview]=useState<Direction|null>(null);
+ const [pressing,setPressing]=useState(false);
+ const turn=(d:Direction)=>{
+  if(transition.current)return;
+  gestureLocked.current=true;transition.current=d;setPreview(null);setPressing(false);
+  navigate.current(d);
+ };
+ useLayoutEffect(()=>{
   const content=root.current;const view=content?.closest<HTMLElement>('.view');
   if(!content||!view)return;
-  view.scrollTop=0;
-  if(!active)return;
+  const d=transition.current;
+  // Backwards pagination lands at the previous page's bottom, forwards at its top.
+  view.scrollTop=d===-1?view.scrollHeight:0;
+  transition.current=null;
+  if(d&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+   const animation=content.animate([{transform:`translateY(${d*view.clientHeight}px)`,opacity:.3},{transform:'translateY(0)',opacity:1}],{duration:280,easing:'cubic-bezier(.2,.7,.2,1)'});
+   return()=>animation.cancel();
+  }
+ },[pageKey]);
+ useEffect(()=>{
+  const view=root.current?.closest<HTMLElement>('.view');
+  if(!view||!active)return;
   let timer:ReturnType<typeof setTimeout>|undefined;
   let idle:ReturnType<typeof setTimeout>|undefined;
-  let direction:Direction|null=null;let wheelStart=0;
+  let dismiss:ReturnType<typeof setTimeout>|undefined;
+  let direction:Direction|null=null;let amount=0;let wheelStart=0;let shown=false;
   let touch:{x:number;y:number;lastY:number;edge:Direction|null}|undefined;
-  const cancel=()=>{clearTimeout(timer);timer=undefined;direction=null;wheelStart=0;setPressing(null)};
-  const edge=(d:Direction)=>d===-1?Boolean(previous)&&view.scrollTop<=2:Boolean(next)&&view.scrollTop+view.clientHeight>=view.scrollHeight-2;
+  const cancel=(hide=true)=>{clearTimeout(timer);timer=undefined;direction=null;amount=0;wheelStart=0;setPressing(false);if(hide){shown=false;setPreview(null)}};
+  const edge=(d:Direction)=>d===-1?Boolean(previous)&&view.scrollTop<=EDGE_PX:Boolean(next)&&view.scrollTop+view.clientHeight>=view.scrollHeight-EDGE_PX;
   const ignored=(target:EventTarget|null)=>target instanceof Element&&Boolean(target.closest('input,textarea,select,[contenteditable=true]'));
-  const turn=(d:Direction)=>{cancel();gestureLocked.current=true;navigate.current(d)};
+  const reveal=(d:Direction)=>{clearTimeout(dismiss);shown=true;setPreview(d)};
+  const release=()=>{cancel(false);shown=false;clearTimeout(dismiss);dismiss=setTimeout(()=>{shown=false;setPreview(null)},2000)};
   const wheel=(event:WheelEvent)=>{
    if(event.ctrlKey||Math.abs(event.deltaX)>=Math.abs(event.deltaY)||ignored(event.target)){cancel();return}
-   // Mouse wheels remain click-only; macOS supplies wheel events for trackpads.
-   if(!/Mac/i.test(navigator.platform))return;
-   if(performance.now()-lastWheel.current>180)gestureLocked.current=false;
-   lastWheel.current=performance.now();
-   clearTimeout(idle);idle=setTimeout(()=>{cancel();gestureLocked.current=false},180);
+   const now=performance.now();
+   if(now-lastWheel.current>WHEEL_IDLE_MS)gestureLocked.current=false;
+   lastWheel.current=now;
+   clearTimeout(idle);idle=setTimeout(()=>{release();gestureLocked.current=false},WHEEL_IDLE_MS);
    if(gestureLocked.current)return;
    const d:Direction=event.deltaY>0?1:-1;
    if(!edge(d)){cancel();return}
    if(event.cancelable)event.preventDefault();
-   if(direction!==d){cancel();direction=d;wheelStart=performance.now();setPressing(d)}
-   if(performance.now()-wheelStart>=500)turn(d);
+   if(direction!==d){cancel();direction=d}
+   // Normalize line/page wheel units; ignore horizontal and pinch gestures above.
+   amount+=Math.abs(event.deltaY)*(event.deltaMode===1?16:event.deltaMode===2?view.clientHeight:1);
+   if(amount<WHEEL_INTENT_PX)return;
+   if(!shown){reveal(d);wheelStart=now;setPressing(/Mac/i.test(navigator.platform))}
+   if(/Mac/i.test(navigator.platform)&&now-wheelStart>=PRESS_MS){cancel();turn(d)}
   };
   const start=(event:TouchEvent)=>{
    cancel();gestureLocked.current=false;
@@ -52,18 +78,24 @@ export function WorkoutNavigation({previous,next,pageKey,active,onNavigate,child
    if(!edge(d)){cancel();touch.edge=null;touch.y=t.clientY;return}
    if(event.cancelable)event.preventDefault();
    if(touch.edge!==d){cancel();touch.edge=d;touch.y=t.clientY;return}
-   if(Math.abs(t.clientY-touch.y)<32){cancel();return}
-   if(direction!==d){cancel();direction=d;setPressing(d);timer=setTimeout(()=>{if(edge(d))turn(d);else cancel()},500)}
+   if(Math.abs(t.clientY-touch.y)<TOUCH_INTENT_PX){cancel();return}
+   if(direction!==d){cancel();direction=d;reveal(d);setPressing(true);timer=setTimeout(()=>{if(edge(d)){cancel();turn(d)}else cancel()},PRESS_MS)}
   };
-  const end=()=>{touch=undefined;gestureLocked.current=false;cancel()};
-  const scroll=()=>{if(direction&&!edge(direction))cancel()};
-  view.addEventListener('wheel',wheel,{passive:false});
-  view.addEventListener('touchstart',start,{passive:true});
-  view.addEventListener('touchmove',move,{passive:false});
-  view.addEventListener('touchend',end);view.addEventListener('touchcancel',end);
-  view.addEventListener('scroll',scroll);window.addEventListener('blur',end);
-  return()=>{cancel();clearTimeout(idle);view.removeEventListener('wheel',wheel);view.removeEventListener('touchstart',start);view.removeEventListener('touchmove',move);view.removeEventListener('touchend',end);view.removeEventListener('touchcancel',end);view.removeEventListener('scroll',scroll);window.removeEventListener('blur',end)};
+  const end=()=>{touch=undefined;gestureLocked.current=false;release()};
+  const abort=()=>{touch=undefined;cancel()};
+  const scroll=()=>{if((direction&&!edge(direction))||(!edge(-1)&&!edge(1)))cancel()};
+  const key=(event:KeyboardEvent)=>{
+   if(ignored(event.target))return;
+   const d=event.key==='ArrowDown'||event.key==='PageDown'?1:event.key==='ArrowUp'||event.key==='PageUp'?-1:null;
+   if(d&&edge(d)){event.preventDefault();reveal(d)}
+   if(event.key==='Escape')cancel();
+  };
+  view.addEventListener('wheel',wheel,{passive:false});view.addEventListener('keydown',key);
+  view.addEventListener('touchstart',start,{passive:true});view.addEventListener('touchmove',move,{passive:false});
+  view.addEventListener('touchend',end);view.addEventListener('touchcancel',abort);
+  view.addEventListener('scroll',scroll);window.addEventListener('blur',abort);
+  return()=>{cancel();clearTimeout(idle);clearTimeout(dismiss);view.removeEventListener('wheel',wheel);view.removeEventListener('keydown',key);view.removeEventListener('touchstart',start);view.removeEventListener('touchmove',move);view.removeEventListener('touchend',end);view.removeEventListener('touchcancel',abort);view.removeEventListener('scroll',scroll);window.removeEventListener('blur',abort)};
  },[pageKey,active,previous,next]);
- const button=(d:Direction,label?:string)=>label?<button type="button" className={`workout-edge${pressing===d?' pressing':''}`} aria-label={`${d===-1?'Previous':'Next'} workout: ${label}`} onClick={()=>navigate.current(d)}><span aria-hidden="true">{d===-1?'↑':'↓'}</span><span>{label}</span></button>:null;
- return <div className="workout-page" ref={root}>{button(-1,previous)}<div className="workout-page-content">{children}</div>{button(1,next)}</div>;
+ const label=preview===-1?previous:next;
+ return <><div className="workout-page" ref={root}><div className="workout-page-content">{children}</div></div>{active&&preview&&label&&<div className={`workout-edge-popup ${preview===-1?'at-top':'at-bottom'}`}><button type="button" className={`workout-edge${pressing?' pressing':''}`} aria-label={`${preview===-1?'Previous':'Next'} workout: ${label}`} onClick={()=>turn(preview)}><span aria-hidden="true">{preview===-1?'↑':'↓'}</span><span>{label}</span></button></div>}</>;
 }
