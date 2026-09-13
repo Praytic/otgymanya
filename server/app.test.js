@@ -1,11 +1,14 @@
 import {describe,expect,it,vi} from 'vitest';
 import request from 'supertest';
 import {createApp} from './app.mjs';
+const allow=(_req,_res,next)=>next();
+const app=options=>createApp({...options,apiAuth:allow});
 
 describe('server',()=>{
  it('requires a spreadsheet ID',()=>expect(()=>createApp({sheets:{}})).toThrow('GOOGLE_SHEETS_ID is required'));
  it('requires a Sheets client',()=>expect(()=>createApp({sheetId:'test'})).toThrow('Sheets client is required'));
- it('creates an app with the fixed API',()=>{const sheets={spreadsheets:{values:{batchGet:vi.fn()}}}; expect(createApp({sheets,sheetId:'test'})).toBeTruthy()});
+ it('requires API authentication',()=>expect(()=>createApp({sheets:{},sheetId:'test'})).toThrow('API authentication is required'));
+ it('creates an app with the fixed API',()=>{const sheets={spreadsheets:{values:{batchGet:vi.fn()}}}; expect(app({sheets,sheetId:'test'})).toBeTruthy()});
  it('adds Sheet-backed program guidance to routine exercises',async()=>{
   const batchGet=vi.fn().mockResolvedValue({data:{valueRanges:[
    {values:[['v1','Routine','2026-01-01','',1,'']]},
@@ -15,7 +18,7 @@ describe('server',()=>{
    {values:[['squat','Squat','Work up to a heavy 3–5-rep max.']]},
   ]}});
   const sheets={spreadsheets:{values:{batchGet}}};
-  const response=await request(createApp({sheets,sheetId:'test'})).get('/api/v1/bootstrap').expect(200);
+  const response=await request(app({sheets,sheetId:'test'})).get('/api/v1/bootstrap').expect(200);
   expect(batchGet).toHaveBeenCalledWith(expect.objectContaining({ranges:expect.arrayContaining(['Exercises!A2:C'])}));
   expect(response.body.exercises[0].guidance).toBe('Work up to a heavy 3–5-rep max.');
   expect(response.body.exercises[0].supersetId).toBe('lower-a');
@@ -24,7 +27,7 @@ describe('server',()=>{
   const update=vi.fn().mockResolvedValue({});
   const sheets={spreadsheets:{values:{get:vi.fn().mockResolvedValue({data:{values:[['record-1']]}}),update}}};
   const result={recordId:'record-1',sessionDate:'2026-01-01',versionId:'v1',cycleWeek:1,dayName:'Day',exerciseId:'exercise',exerciseName:'Exercise',setNumber:1,reps:'5',weight:'100',comment:'=1+1',updatedAt:'2026-01-01T00:00:00.000Z'};
-  await request(createApp({sheets,sheetId:'test'})).post('/api/v1/results').send(result).expect(204);
+  await request(app({sheets,sheetId:'test'})).post('/api/v1/results').send(result).expect(204);
   expect(update).toHaveBeenCalledWith(expect.objectContaining({valueInputOption:'RAW'}));
  });
  it('replaces every row for a submitted session date and verifies the sheet',async()=>{
@@ -34,7 +37,7 @@ describe('server',()=>{
   const clear=vi.fn().mockResolvedValue({});
   const sheets={spreadsheets:{values:{get,update,clear}}};
   const row={recordId:'new-set-1',sessionDate:'2026-01-02',versionId:'v1',cycleWeek:1,dayName:'Day',exerciseId:'exercise',exerciseName:'Exercise',setNumber:1,reps:'6',weight:'105',comment:'done',updatedAt:'2026-01-02T00:00:00.000Z'};
-  await request(createApp({sheets,sheetId:'test'})).post('/api/v1/results/session').send({sessionDate:'2026-01-02',results:[row]}).expect(204);
+  await request(app({sheets,sheetId:'test'})).post('/api/v1/results/session').send({sessionDate:'2026-01-02',results:[row]}).expect(204);
   expect(update).toHaveBeenCalledWith(expect.objectContaining({valueInputOption:'RAW',requestBody:{values:[expect.arrayContaining(['old-other']),expect.arrayContaining(['new-set-1'])]}}));
   expect(clear).toHaveBeenCalled();
   expect(get).toHaveBeenCalledTimes(2);

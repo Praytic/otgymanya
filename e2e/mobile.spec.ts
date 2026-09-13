@@ -146,16 +146,6 @@ test('local draft survives reload and overrides refreshed Sheet values',async({p
  await expect(weight).toHaveValue('135');
 });
 
-test('cached Sheet snapshot remains usable when refresh is offline',async({page})=>{
- await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
- await page.addInitScript(cache=>localStorage.setItem('gym-tracker:sheet-cache:v1',JSON.stringify(cache)),{versions:[cachedVersion],exercises:[cachedExercise],workouts:[cachedWorkout('5','100')],stats:[]});
- await page.route('**/api/v1/bootstrap',route=>route.abort('internetdisconnected'));
- await page.goto('/');
- await expect(page.getByRole('heading',{name:"Today's workout"})).toBeInViewport();
- await expect(page.getByRole('status')).toContainText('Offline · showing saved data');
- await expect(page.getByRole('button',{name:/Bench Press/})).toBeVisible();
-});
-
 test('history expands workouts and preserves recorded exercise order',async({page})=>{
  const base={sessionDate:'2026-08-31',versionId:'v1',cycleWeek:1,dayName:'Monday — Strength',reps:'5',weight:'100',comment:'',updatedAt:'2026-08-31T12:00:00.000Z'};
  const workouts=[

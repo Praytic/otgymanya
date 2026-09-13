@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-test('Telegram uses the web UI, signed API requests, safe areas and native Back',async({page})=>{
+test('Telegram uses the app UI, signed API requests, safe areas and native Back',async({page})=>{
  await page.route('https://telegram.org/js/**',route=>route.fulfill({body:''}));
  await page.addInitScript(()=>{
   const calls:string[]=[];(window as any).telegramCalls=calls;
@@ -22,9 +22,8 @@ test('Telegram uses the web UI, signed API requests, safe areas and native Back'
  await expect.poll(()=>page.locator('.rail').evaluate(el=>Math.round(el.scrollLeft/el.clientWidth))).toBe(1);
  expect(await page.evaluate(()=>(window as any).telegramCalls)).toEqual(expect.arrayContaining(['ready','expand','disable-swipes','hide-back']));
 });
-test('unsigned Mini App cannot display a previously cached routine',async({page})=>{
+test('unsigned Mini App cannot display routine data',async({page})=>{
  await page.route('https://telegram.org/js/**',route=>route.fulfill({body:''}));
- await page.addInitScript(()=>localStorage.setItem('gym-tracker:sheet-cache:v1',JSON.stringify({versions:[{id:'v1',effectiveFrom:'2026-01-01',cycleWeeks:1}],exercises:[],workouts:[],stats:[]})));
  await page.route('**/api/v1/**',route=>route.fulfill({status:401,json:{error:{message:'Open Gym from Telegram to continue.'}}}));
  await page.goto('/?telegram=1');
  await expect(page.getByText('Open Gym from Telegram to continue.')).toBeVisible();

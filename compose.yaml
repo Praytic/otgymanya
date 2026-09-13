@@ -1,0 +1,33 @@
+name: gym-routine-tracker
+x-runtime: &runtime
+  image: gym-routine-tracker:local
+  network_mode: host
+  restart: unless-stopped
+  read_only: true
+  init: true
+  user: "${CONTAINER_UID:-1000}:${CONTAINER_GID:-1000}"
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: [/tmp]
+  volumes:
+    - type: bind
+      source: ${GOOGLE_CREDENTIALS_FILE:?Set GOOGLE_CREDENTIALS_FILE}
+      target: /run/secrets/google.json
+      read_only: true
+      bind:
+        create_host_path: false
+    - type: bind
+      source: ./WORKOUT_CONTEXT.md
+      target: /app/WORKOUT_CONTEXT.md
+      read_only: true
+      bind:
+        create_host_path: false
+services:
+  mini-app:
+    <<: *runtime
+    build: .
+    env_file: ${DEPLOY_CONFIG_DIR:?Set DEPLOY_CONFIG_DIR}/mini-app-docker.env
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/google.json
+      MINI_APP_PORT: ${MINI_APP_PORT:-8083}
+      HEALTHCHECK_URL: http://127.0.0.1:${MINI_APP_PORT:-8083}/api/health/live

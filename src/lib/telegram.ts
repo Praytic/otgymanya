@@ -1,7 +1,6 @@
 import {useEffect} from 'react';
 type WebApp={initData:string;ready:()=>void;expand:()=>void;isVersionAtLeast:(v:string)=>boolean;setHeaderColor:(c:string)=>void;setBackgroundColor:(c:string)=>void;setBottomBarColor?:(c:string)=>void;disableVerticalSwipes?:()=>void;BackButton:{show:()=>void;hide:()=>void;onClick:(fn:()=>void)=>void;offClick:(fn:()=>void)=>void}};
 declare global{interface Window{Telegram?:{WebApp:WebApp}}}
-export const isMiniApp=()=>Boolean(window.Telegram?.WebApp.initData)||new URLSearchParams(location.search).has('telegram');
 export function initializeTelegram(){
  const app=window.Telegram?.WebApp;if(!app?.initData)return;
  document.documentElement.classList.add('telegram');
