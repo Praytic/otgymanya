@@ -31,6 +31,7 @@ h3{font-size:20px;margin:0}
 .exercise-details{border-top:1px solid #e2e2e2;padding:16px}
 .exercise-group-details>.exercise-details+.exercise-details{border-top:2px solid #bdbdbd}
 .exercise-group-details .exercise-details{margin:0}
+.exercise-details-title{margin:0 0 16px}
 .exercise-guidance{margin:0 0 16px;color:#4b4b4b;font-size:.9rem;line-height:1.45}
 .exercise-actions{display:flex;justify-content:flex-start;border-top:1px solid #e2e2e2;margin-top:16px;padding-top:12px}
 .set-head,.set-row{display:grid;grid-template-columns:44px 1fr 1fr;gap:12px;align-items:center;margin:8px 0}

@@ -88,8 +88,12 @@ test('renders a superset as one expandable row with two editable blocks',async({
  await expect(superset).toHaveCount(1);
  await expect(superset.getByRole('button',{name:/Lat Pulldown.*Reverse Fly.*Superset/})).toBeVisible();
  await expect(page.getByLabel('Lat Pulldown set 1 reps')).toHaveCount(0);
+ await expect(superset.getByRole('heading',{name:'Reverse Fly'})).toHaveCount(0);
  await superset.locator('.exercise-row').click();
- await expect(superset.locator('.exercise-details')).toHaveCount(2);
+ const details=superset.locator('.exercise-details');
+ await expect(details).toHaveCount(2);
+ await expect(details.nth(0).getByRole('heading')).toHaveCount(0);
+ await expect(details.nth(1).locator(':scope > h3:first-child')).toHaveText('Reverse Fly');
  await expect(page.getByLabel('Lat Pulldown set 1 reps')).toBeVisible();
  await expect(page.getByLabel('Reverse Fly set 1 reps')).toBeVisible();
  await expect(page.getByLabel('Add comment for Lat Pulldown')).toBeVisible();
