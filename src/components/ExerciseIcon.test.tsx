@@ -11,6 +11,9 @@ const routineExerciseIds=[
  'goblet-squat','dumbbell-romanian-deadlift','reverse-lunge','single-leg-calf-raise',
  'bodyweight-bulgarian-split-squat','bodyweight-row','push-up','pull-up','plank',
  'bodyweight-squat','bodyweight-split-squat','bodyweight-single-leg-calf-raise','deadbug',
+ 'dumbbell-front-squat','single-leg-dumbbell-deadlift','sit-up','dumbbell-bent-over-row',
+ 'bodyweight-single-leg-hip-thrust','dumbbell-biceps-curl','lying-leg-raise',
+ 'dumbbell-standing-calf-raise','chin-up','dumbbell-upright-row',
 ];
 
 describe('ExerciseIcon',()=>{

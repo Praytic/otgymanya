@@ -29,6 +29,16 @@ import plank from '@bryllim/workout-guide/assets/plank/frame-1.png';
 import bodyweightSquat from '@bryllim/workout-guide/assets/bodyweight-squat/frame-1.png';
 import splitSquat from '@bryllim/workout-guide/assets/split-squat/frame-1.png';
 import deadBug from '@bryllim/workout-guide/assets/dead-bug/frame-1.png';
+import dumbbellBentOverRow from '@bryllim/workout-guide/assets/dumbbell-bent-over-row/frame-1.png';
+import singleLegDeadlift from '@bryllim/workout-guide/assets/single-leg-romanian-deadlift/frame-1.png';
+import singleLegHipThrust from '../assets/exercises/single-leg-hip-thrust.svg';
+import dumbbellFrontSquat from '../assets/exercises/dumbbell-front-squat.svg';
+import sitUp from '../assets/exercises/sit-up.svg';
+import dumbbellUprightRow from '../assets/exercises/dumbbell-upright-row.svg';
+import bicepCurl from '@bryllim/workout-guide/assets/bicep-curl/frame-1.png';
+import lyingLegRaise from '@bryllim/workout-guide/assets/lying-leg-raise/frame-1.png';
+import standingCalfRaise from '@bryllim/workout-guide/assets/standing-calf-raise/frame-1.png';
+import chinUp from '@bryllim/workout-guide/assets/chin-up/frame-1.png';
 
 const icons:Record<string,string>={
  'bench-press':benchPress,
@@ -67,6 +77,16 @@ const icons:Record<string,string>={
  'bodyweight-split-squat':splitSquat,
  'bodyweight-single-leg-calf-raise':singleLegCalfRaise,
  deadbug:deadBug,
+ 'dumbbell-front-squat':dumbbellFrontSquat,
+ 'single-leg-dumbbell-deadlift':singleLegDeadlift,
+ 'sit-up':sitUp,
+ 'dumbbell-bent-over-row':dumbbellBentOverRow,
+ 'bodyweight-single-leg-hip-thrust':singleLegHipThrust,
+ 'dumbbell-biceps-curl':bicepCurl,
+ 'lying-leg-raise':lyingLegRaise,
+ 'dumbbell-standing-calf-raise':standingCalfRaise,
+ 'chin-up':chinUp,
+ 'dumbbell-upright-row':dumbbellUprightRow,
 };
 
 export function ExerciseIcon({exerciseId}:{exerciseId:string}){

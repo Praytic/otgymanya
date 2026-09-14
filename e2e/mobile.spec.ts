@@ -2,6 +2,17 @@ import {test,expect} from '@playwright/test';
 const cachedVersion={id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''};
 const cachedExercise={versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:3,dayName:'Wednesday — Strength',dayOrder:1,exerciseId:'bench',exerciseName:'Bench Press',exerciseOrder:1,sets:2,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:'',guidance:''};
 const cachedWorkout=(reps:string,weight:string)=>({recordId:'2026-09-02:bench:1',sessionDate:'2026-09-02',versionId:'v1',cycleWeek:6,dayName:'Wednesday — Strength',exerciseId:'bench',exerciseName:'Bench Press',setNumber:1,reps,weight,comment:'',updatedAt:'2026-09-02T12:00:00.000Z'});
+test('version-specific exercise instructions override shared catalog guidance',async({page})=>{
+ await page.clock.setFixedTime(new Date('2026-09-16T12:00:00'));
+ const exercise={...cachedExercise,exerciseId:'push-up',exerciseName:'Push-Up',targetReps:'5–20',instructions:'Start at RPE 7, about three reps in reserve.',guidance:'Old program: progress after three sets of fifteen.'};
+ await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions:[cachedVersion],exercises:[exercise],workouts:[],stats:[]}}));
+ await page.goto('/');
+ await page.getByRole('button',{name:/Push-Up.*reps/}).click();
+ await expect(page.getByText(exercise.instructions,{exact:true})).toBeVisible();
+ await expect(page.getByText(exercise.guidance,{exact:true})).toHaveCount(0);
+ await expect(page.locator('.exercise-icon')).toHaveCount(1);
+ await expect(page.locator('.current-workout-view time')).toHaveText('2026-09-16');
+});
 test('mobile workout editor groups a day and submits it as one replacement',async({page})=>{
  await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
  let writes=0;

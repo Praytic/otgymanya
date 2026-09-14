@@ -1,43 +1,54 @@
 # Actual workout routine
 
-This document describes the Google Sheet routine snapshot `ws4sb-4day-v3`, effective September 15, 2026; `ws4sb-4day-v1` remains active through September 13 and `ws4sb-4day-v2` applies on September 14. The Google Sheet remains the source of truth.
+Google Sheet snapshot `rp-hypertrophy-3day-le-v1`, effective September 16, 2026. The Google Sheet remains the source of truth. Earlier routine and workout records remain unchanged; the previous snapshot ends September 15.
 
-The program follows a six-week cycle with four strength sessions each week. Monday and Wednesday are one-hour gym sessions. Friday and Sunday are home sessions using only 5–15 kg dumbbells and bodyweight. The main upper- and lower-body gym lifts rotate every two weeks; the remaining exercises stay consistent throughout the cycle.
+Source: [RP Hypertrophy v4.1: 3-Day Full Body — Limited Equipment](https://www.liftosaur.com/p/84e4a603), by KillerK009. [Author's progression and usage instructions](https://www.reddit.com/r/liftosaur/comments/1s6cs9p/rp_hypertrophy_program_v41_release/). This is an RP-inspired community program, not an official RP Strength product.
 
-## Monday — Gym upper and legs
+The schedule is Wednesday Day 1, Friday Day 2, then the following Monday Day 3, preserving the published sequence. The first three sessions are September 16, 18, and 21. Monday and Wednesday are gym sessions; Friday is at home after the morning run. All sessions retain the limited-equipment template's exercise choices. Saturday is rest and Sunday is running only.
 
-Begin with the rotating upper-body strength lift. In weeks 1–2, work up to one heavy set of 3–5 bench-press reps after warming up. In weeks 3–4, use the incline bench press for the same prescription. In weeks 5–6, use the close-grip bench press.
+These are the author's opening working-set counts and first-set targets, not a newly designed routine. Start at RPE 7, around three reps in reserve. Subsequent sets may lose repetitions at the same load and effort; the source minimum is five reps. For unilateral lower-body exercises, complete the listed work on both sides. Rest 180 seconds between working sets (source default); warm-up timer 90 seconds. Warm-up sets are additional to the listed working sets.
 
-Continue with three sets of 8–12 bodyweight Bulgarian split squats per side. Use support or regular split squats if needed. Then perform three sets of 6–12 bodyweight rows (vertical, incline, or horizontal according to ability) and three sets of 12–15 face pulls as a superset. Finish with three sets of 10–15 leg curls.
+## Wednesday — Gym / RP Day 1
 
-Rest three minutes after the heavy press and about 90 seconds after the other exercises or completed superset rounds.
+| Exercise | Starting working sets | First-set rep target |
+|---|---:|---|
+| Push-Up | 2 | 5–20 |
+| Dumbbell Front Squat | 2 | 5–10 |
+| Pull-Up | 2 | 5–15 |
+| Single-Leg Dumbbell Deadlift | 2 | 12–15 per side |
+| Dumbbell Lateral Raise | 2 | 8–12 |
+| Sit-Up | 2 | 10–15 |
 
-## Wednesday — Gym lower and upper
+## Friday — Home / RP Day 2
 
-Start with five sets of three jump squats, focusing on maximum height and a clean landing. Follow with the rotating lower-body strength lift. In weeks 1–2, perform three working sets of 3–5 box squats after warming up. In weeks 3–4, work up to one heavy set of 3–5 deadlift reps. In weeks 5–6, work up to one heavy set of 3–5 squat reps.
+| Exercise | Starting working sets | First-set rep target |
+|---|---:|---|
+| Dumbbell Bent-Over Row | 2 | 8–12 |
+| Bodyweight Single-Leg Hip Thrust | 2 | 8–12 per side |
+| Dumbbell Shoulder Press | 2 | 8–12 |
+| Dumbbell Biceps Curl | 3 | 10–15 |
+| Overhead Dumbbell Triceps Extension | 3 | 10–15 |
+| Lying Leg Raise | 2 | 8–12 |
 
-Continue with three sets of 8–15 push-ups, elevating the hands if needed. Then perform three sets of 5–8 pull-ups, using assistance as needed, and three sets of 12–15 reverse flyes as a superset. Finish with three sets of 10–15 V-ups.
+## Monday — Gym / RP Day 3
 
-Rest three minutes after the heavy lower-body lift, two minutes after push-ups, 90 seconds after jump squats and completed pulling superset rounds, and 60 seconds after V-ups.
+| Exercise | Starting working sets | First-set rep target |
+|---|---:|---|
+| Dumbbell Romanian Deadlift | 2 | 5–10 |
+| Bulgarian Split Squat | 2 | 5–15 per side |
+| Dumbbell Standing Calf Raise | 2 | 12–15 |
+| Chin-Up | 2 | 5–15 |
+| Push-Up | 2 | 5–20 |
+| Dumbbell Upright Row | 2 | 12–15 |
 
-## Friday — Home upper
+## Loads and progression
 
-Perform four sets of 8–15 push-ups together with four sets of 10–20 one-arm dumbbell rows per side as a superset. Use incline push-ups if needed, progressing toward full push-ups; pause at the top of every row.
+Home dumbbells currently stop at 15 lb each; planned adjustable capacity is approximately 5–50 lb each. Equipment capacity is not a starting-load prescription. Use gym dumbbells for the other sessions and a stable bench or sofa for Friday hip thrusts. Bodyweight movements begin with bodyweight or suitable assistance; do not interpret the template's sample 100 lb values as prescribed added weight.
 
-Next, perform three sets of 10–15 dumbbell shoulder presses together with three sets of 15–25 strict dumbbell lateral raises as a superset. Finish with three sets of 12–20 hammer curls together with three plank holds of 20–40 seconds as a superset. Use a knee plank if needed; keep breathing and stop before the lower back sags.
+Use the author's performance-based progression: add repetitions or an available load increment as appropriate, rate recovery to guide set volume, and deload when needed (or after a selected 4–8-week block). Start with the opening targets above. The source's Start, Accumulation, and Deload phases depend on performance and feedback; they are not a fixed three-week cycle.
 
-Rest about 75 seconds after each push-up-and-row round and 60 seconds after each shoulder or curl-and-plank round. This replaces floor presses and overhead triceps extensions with bodyweight work while retaining dumbbells for rows and accessories.
+The Sheet stores a complete repeating one-week opening prescription and the source progression guidance. This tracker does not execute Liftosaur's adaptive scripts or automatically advance training phases. Use the original Liftosaur program for its calculated targets; any later change to the prescribed Sheet sets/reps must be another immutable version. Record actual performed results without changing historical prescriptions.
 
-## Sunday — Home lower
+## Running and time constraints
 
-Perform four sets of 15–25 bodyweight squats, lowering for three seconds and pausing at the bottom. Use support if needed. Continue with four sets of 12–20 dumbbell Romanian deadlifts using a slow lowering phase and a full hamstring stretch.
-
-Then perform three sets of 10–15 bodyweight split squats per side and four sets of 15–25 bodyweight single-leg calf raises per side. Use light hand support for balance; pause at the top and lower slowly on calf raises. Finish with three sets of 8–12 deadbugs per side, keeping the lower back gently against the floor and shortening the reach if it arches.
-
-Rest about 75 seconds after squats, Romanian deadlifts, and split squats, and 60 seconds after calf raises and deadbugs. Romanian deadlifts are the only dumbbell exercise on Sunday.
-
-## Progression
-
-Bodyweight squat, row, push-up, pull-up, and plank progressions come from the [linked progression sheet](https://docs.google.com/spreadsheets/d/1H7J8EtBJ1akHUyMZ8Hcz5LcBTZYvY_qCwDblVW4IAB8/edit?gid=0#gid=0). The sets and rep ranges here are this routine’s adaptation. Deadbugs come from the source warm-up and are adapted as Sunday core work; bodyweight calf raises adapt the existing routine. The first revised home sessions are September 18 and 20. Keep 1–2 reps in reserve. After reaching the top of the range for all sets, increase row difficulty, reduce pull-up assistance, or move from incline to full and eventually diamond push-ups. Build pull-up control with scapular pulls and arch hangs before negatives and full reps if needed. After mastering bodyweight Bulgarian split squats, progress toward beginner shrimp squats. Monday has no dumbbell exercises; Wednesday retains dumbbell reverse flyes.
-
-Use the performed workouts to establish working weights. For home dumbbell exercises, first add controlled reps until reaching the top of the prescribed range. Then move to the next available dumbbell while keeping clean technique. When 15 kg is no longer challenging, increase difficulty with slower lowering, longer pauses, greater range of motion, or unilateral execution instead of exceeding the available equipment.
+Runs remain Tuesday, Thursday, Friday, and Sunday mornings; Sunday is the longest/hardest. Monday's lower-body work follows that run, so recovery needs monitoring. The preferred gym window is 12:15–1:15 PM, but the source preview estimates about 82 minutes per session; a one-hour fit has not been established. No extra home or Sunday strength session is added.
