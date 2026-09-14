@@ -296,7 +296,22 @@ test('edge popup stays hidden until an extra scroll and disappears on reversal',
  await view.evaluate(el=>el.scrollTop=0);
  await view.dispatchEvent('wheel',{deltaY:-60});
  await expect(page.getByRole('button',{name:/Previous workout: Friday/})).toBeVisible();
- await page.screenshot({path:'test-results/workout-edge-popup.png'});
+ const control=page.getByRole('button',{name:/Previous workout: Friday/});
+ await expect(control).toHaveText('Friday');
+ const top=await control.boundingBox();
+ const header=await view.locator('.compact-header').boundingBox();
+ expect(top!.height).toBeLessThanOrEqual(40);
+ expect(top!.width).toBeLessThan(130);
+ expect(top!.y+top!.height).toBeLessThanOrEqual(header!.y);
+ await view.dispatchEvent('wheel',{deltaY:60});
+ await view.evaluate(el=>el.scrollTop=el.scrollHeight);
+ await view.dispatchEvent('wheel',{deltaY:60});
+ const bottomControl=page.getByRole('button',{name:/Next workout: Friday/});
+ await expect(bottomControl).toHaveText('Friday');
+ const bottom=await bottomControl.boundingBox();
+ const submit=await page.getByRole('button',{name:'Submit workout'}).boundingBox();
+ expect(bottom!.y).toBeGreaterThanOrEqual(submit!.y+submit!.height);
+ await page.screenshot({path:'test-results/workout-edge-inline.png'});
 });
 
 test('native Android touch scrolls content before revealing the next-page popup',async({page,context})=>{

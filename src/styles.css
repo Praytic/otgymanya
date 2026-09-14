@@ -81,16 +81,11 @@ h3{font-size:20px;margin:0}
 .telegram .view{padding-top:calc(20px + var(--tg-content-safe-area-inset-top,0px) + var(--tg-safe-area-inset-top,0px));padding-bottom:calc(40px + var(--tg-content-safe-area-inset-bottom,0px) + var(--tg-safe-area-inset-bottom,0px));padding-left:calc(16px + var(--tg-safe-area-inset-left,0px));padding-right:calc(16px + var(--tg-safe-area-inset-right,0px))}
 .workout-page{min-height:100%;display:flex;flex-direction:column}
 .workout-page-content{flex:1;min-width:0}
-.workout-edge{display:flex;align-items:center;justify-content:center;gap:10px;flex-shrink:0;width:100%;min-height:48px;padding:10px 14px;border:1px solid #e8e8e8;border-radius:12px;background:#fafafa;color:#737373;font:inherit;font-size:14px;cursor:pointer;transition:background .2s,color .2s}
+/* Reserve the reveal area so showing a control cannot move the scroll boundary. */
+.workout-edge-slot{display:flex;justify-content:center;align-items:center;flex:0 0 44px;min-height:44px}
+.workout-edge{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:6px 16px;border:1px solid #e8e8e8;border-radius:8px;background:#fafafa;color:#737373;font:inherit;font-size:13px;cursor:pointer;transition:background .2s,color .2s}
 .workout-edge:hover,.workout-edge:focus-visible,.workout-edge.pressing{background:#e8e8e8;color:#222}
 .workout-edge.pressing{animation:workout-pressure .5s linear forwards}
-@keyframes workout-pressure{from{box-shadow:inset 0 -2px #aaa}to{box-shadow:inset 0 -48px #dedede}}
+@keyframes workout-pressure{from{box-shadow:inset 0 -2px #aaa}to{box-shadow:inset 0 -36px #dedede}}
 @media(prefers-reduced-motion:reduce){.workout-edge{transition:none}.workout-edge.pressing{animation:none;background:#dedede}}
 .current-workout-view{overscroll-behavior-y:contain}
-
-.workout-edge-popup{position:fixed;z-index:3;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:680px;animation:workout-popup .15s ease-out}
-.workout-edge-popup.at-top{top:calc(12px + env(safe-area-inset-top) + var(--tg-content-safe-area-inset-top,0px))}
-.workout-edge-popup.at-bottom{bottom:calc(12px + env(safe-area-inset-bottom) + var(--tg-content-safe-area-inset-bottom,0px))}
-.workout-edge-popup .workout-edge{background:#fffffff2;box-shadow:0 2px 16px #0002}
-@keyframes workout-popup{from{opacity:0}to{opacity:1}}
-@media(prefers-reduced-motion:reduce){.workout-edge-popup{animation:none}}

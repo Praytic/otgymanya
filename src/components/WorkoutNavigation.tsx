@@ -2,14 +2,14 @@ import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import type {ReactNode} from 'react';
 
 type Direction=-1|1;
-interface Props{previous?:string;next?:string;pageKey:string;active:boolean;onNavigate:(direction:Direction)=>void;children:ReactNode}
+interface Props{previous?:string;next?:string;previousWeekday?:string;nextWeekday?:string;pageKey:string;active:boolean;onNavigate:(direction:Direction)=>void;children:ReactNode}
 const EDGE_PX=2;
 const WHEEL_INTENT_PX=48;
 const TOUCH_INTENT_PX=32;
 const PRESS_MS=500;
 const WHEEL_IDLE_MS=180;
 
-export function WorkoutNavigation({previous,next,pageKey,active,onNavigate,children}:Props){
+export function WorkoutNavigation({previous,next,previousWeekday,nextWeekday,pageKey,active,onNavigate,children}:Props){
  const root=useRef<HTMLDivElement>(null);
  const gestureLocked=useRef(false);
  const lastWheel=useRef(0);
@@ -96,6 +96,9 @@ export function WorkoutNavigation({previous,next,pageKey,active,onNavigate,child
   view.addEventListener('scroll',scroll);window.addEventListener('blur',abort);
   return()=>{cancel();clearTimeout(idle);clearTimeout(dismiss);view.removeEventListener('wheel',wheel);view.removeEventListener('keydown',key);view.removeEventListener('touchstart',start);view.removeEventListener('touchmove',move);view.removeEventListener('touchend',end);view.removeEventListener('touchcancel',abort);view.removeEventListener('scroll',scroll);window.removeEventListener('blur',abort)};
  },[pageKey,active,previous,next]);
- const label=preview===-1?previous:next;
- return <><div className="workout-page" ref={root}><div className="workout-page-content">{children}</div></div>{active&&preview&&label&&<div className={`workout-edge-popup ${preview===-1?'at-top':'at-bottom'}`}><button type="button" className={`workout-edge${pressing?' pressing':''}`} aria-label={`${preview===-1?'Previous':'Next'} workout: ${label}`} onClick={()=>turn(preview)}><span aria-hidden="true">{preview===-1?'↑':'↓'}</span><span>{label}</span></button></div>}</>;
+ const control=(d:Direction)=>{
+  const label=d===-1?previous:next;const weekday=d===-1?previousWeekday:nextWeekday;
+  return <div className="workout-edge-slot">{active&&preview===d&&label&&<button type="button" className={`workout-edge${pressing?' pressing':''}`} aria-label={`${d===-1?'Previous':'Next'} workout: ${label}`} onClick={()=>turn(d)}>{weekday}</button>}</div>;
+ };
+ return <div className="workout-page" ref={root}>{control(-1)}<div className="workout-page-content">{children}</div>{control(1)}</div>;
 }
