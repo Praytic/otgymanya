@@ -1,5 +1,19 @@
 # Debugging
 
+## Week label changes when navigating into a weekly routine
+
+- Status: Fixed and deployed; regression and production build pass.
+- Smallest repro: Open Monday 2026-09-14, then scroll to the next workout on Wednesday 2026-09-16 in Android Chromium.
+- Source of truth: Monday's immutable routine has a six-week cycle; Wednesday starts a different routine with a repeating one-week prescription.
+- Hypotheses: Stale navigation state could mix the selected workout and initial version, or the header could be showing correct cycle lengths without identifying the routine transition. A switch within the same version would support the former; matching the two Sheet versions supports the latter.
+- Observed live baseline: The header changes from `Week 1 of 6` to `Week 1 of 1`. Read-only Sheet inspection confirms both lengths belong to their respective dates.
+- Regression probe: `npm run test:e2e -- --grep 'workout header explains'`. Before the fix, the header lacks the expected routine name.
+- Fix: Identify the selected routine beside its cycle label, and display `Repeats weekly` for one-week schedules. Retain the actual cycle week for multiweek routines.
+- Observed result: The target regression passes, including forward navigation within the weekly routine and return to the original six-week routine. Android touch navigation and original-version submission regressions also pass; all 16 unit/API tests and the production build pass.
+- Regression command: `npm run test:e2e -- --grep 'workout header explains|Friday navigates|native Android touch'`.
+- Live verification: Signed Android Chromium navigation shows the WS4SB name with `Week 1 of 6`, then the RP name with `Repeats weekly`. The header fits the mobile width, the container is healthy, and no live workout writes were made.
+- No routine definitions, effective dates, or historical results were changed.
+
 ## Exercise icons missing in the Telegram Mini App
 
 - Status: Fixed and deployed.

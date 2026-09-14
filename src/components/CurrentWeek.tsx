@@ -33,7 +33,7 @@ export function CurrentWeek({version:initialVersion,versions,exercises,workouts,
  const weekday=(item:typeof workout|undefined)=>item?new Date(`${item.date}T12:00:00`).toLocaleDateString('en-US',{weekday:'long'}):undefined;
  const label=(item:typeof workout|undefined)=>item?`${item.day[0].dayName} · ${item.date}`:undefined;
  return <WorkoutNavigation pageKey={`${version.id}:${date}`} active={active} previous={label(previous)} next={label(next)} previousWeekday={weekday(previous)} nextWeekday={weekday(next)} onNavigate={direction=>{const target=direction===-1?previous:next;if(target)setSelected(target.date)}}>
- <header className="compact-header"><span className="eyebrow">Week {week} of {version.cycleWeeks}</span><h1>{date===localISO(today)?"Today's workout":date===upcoming?.date?'Next workout':'Workout'}</h1><p>{day[0].dayName}<br/><time>{date}</time></p></header>
+ <header className="compact-header"><span className="eyebrow">{version.name} · {version.cycleWeeks===1?'Repeats weekly':`Week ${week} of ${version.cycleWeeks}`}</span><h1>{date===localISO(today)?"Today's workout":date===upcoming?.date?'Next workout':'Workout'}</h1><p>{day[0].dayName}<br/><time>{date}</time></p></header>
  <DayEditor key={`${version.id}:${date}:${day.map(e=>e.exerciseId).join(':')}`} day={day} date={date} version={version} week={week} existing={workouts.filter(w=>w.sessionDate===date)} onSubmit={onSubmit}/>
  </WorkoutNavigation>;
 }

@@ -292,6 +292,39 @@ async function revealEdge(page:import('@playwright/test').Page,direction:number)
  await page.waitForTimeout(320);
  await view.dispatchEvent('wheel',{deltaY:direction*60,deltaX:0});
 }
+test('workout header explains a transition from a six-week cycle to a weekly routine',async({page})=>{
+ await page.clock.setFixedTime(new Date('2026-09-14T12:00:00'));
+ const versions=[
+  {...cachedVersion,id:'old',name:'Previous strength program',effectiveFrom:'2026-09-14',effectiveTo:'2026-09-15'},
+  {...cachedVersion,id:'new',name:'New weekly program',effectiveFrom:'2026-09-16',cycleWeeks:1},
+ ];
+ const exercises=[
+  {...cachedExercise,versionId:'old',dayOfWeek:1,dayName:'Monday — Gym'},
+  {...cachedExercise,versionId:'new',weekTo:1},
+  {...cachedExercise,versionId:'new',weekTo:1,dayOfWeek:5,dayName:'Friday — Home'},
+ ];
+ await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions,exercises,workouts:[],stats:[]}}));
+ await page.goto('/');
+ const header=page.locator('.current-workout-view .compact-header');
+ await expect(header).toContainText("Today's workout");
+ await expect(header.locator('.eyebrow')).toHaveText('Previous strength program · Week 1 of 6');
+ await revealEdge(page,1);
+ await page.getByRole('button',{name:/Next workout: Wednesday/}).click();
+ await expect(header.locator('time')).toHaveText('2026-09-16');
+ await expect(header.locator('.eyebrow')).toHaveText('New weekly program · Repeats weekly');
+ await expect(header).not.toContainText('Week 1 of 1');
+ await expect(page.locator('.current-workout-view').evaluate(el=>el.scrollWidth<=el.clientWidth)).resolves.toBe(true);
+ await page.screenshot({path:'test-results/routine-cycle-transition.png'});
+ await revealEdge(page,1);
+ await page.getByRole('button',{name:/Next workout: Friday/}).click();
+ await expect(header.locator('.eyebrow')).toHaveText('New weekly program · Repeats weekly');
+ await revealEdge(page,-1);
+ await page.getByRole('button',{name:/Previous workout: Wednesday/}).click();
+ await revealEdge(page,-1);
+ await page.getByRole('button',{name:/Previous workout: Monday/}).click();
+ await expect(header.locator('time')).toHaveText('2026-09-14');
+ await expect(header.locator('.eyebrow')).toHaveText('Previous strength program · Week 1 of 6');
+});
 test('edge popup stays hidden until an extra scroll and disappears on reversal',async({page})=>{
  await navigationFixture(page);
  await page.getByRole('button',{name:/Bench Press.*reps/}).click();
