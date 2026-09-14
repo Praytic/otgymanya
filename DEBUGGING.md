@@ -1,5 +1,19 @@
 # Debugging
 
+## Exercise icons missing in the Telegram Mini App
+
+- Status: Fixed and deployed.
+- Smallest repro: Compare the exercise-ID strings in the JavaScript served from `127.0.0.1:8083` with the current production build.
+- Exact probes: fetch the live and local `index-*.js` bundles, then search for `bodyweight-row`, `push-up`, `pull-up`, `deadbug`, and `seated-cable-row`.
+- Expected: Both bundles contain the current exercise-ID mappings.
+- Observed source of truth: The local bundle contains all five mappings.
+- Observed live behavior: The container bundle contains none of them. It serves `index-BcqWP7j1.js`; the current local build serves `index-CtDQNDnc.js`.
+- Confirmed cause: The Telegram WebView was receiving a container image built before commit `e46d388`, rather than hiding or failing to load icons from the current build.
+- Evidence: The running image was created on September 12, while the icon commit was created on September 14. Tailnet HTTPS proxies to the same stale loopback bundle.
+- Fix: Rebuilt and recreated the Mini App container from the current checkout.
+- Observed result: Loopback and tailnet HTTPS both serve `index-CtDQNDnc.js`; all 31 bundled exercise images return HTTP 200. An Android-sized Chromium launch against the live signed Mini App rendered five exercise icons across four rows, and every image completed with a nonzero intrinsic width.
+- Regression checks: Container is healthy, `/api/health/live` returns 200, and unsigned bootstrap remains rejected with 401.
+
 ## Android pull-to-refresh
 
 - Status: Fixed locally
