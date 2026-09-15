@@ -1,3 +1,5 @@
+import {completeHistoricalStats} from './stats.mjs';
+
 const READ_RANGES=['Routine Versions!A2:F','Routine Exercises!A2:O','Workout Log!A2:L','Stats!A2:J','Exercises!A2:C'];
 
 export function spreadsheetId(){
@@ -26,11 +28,13 @@ export async function loadBootstrap(sheets,sheetId=spreadsheetId()){
  const result=await sheets.spreadsheets.values.batchGet({spreadsheetId:sheetId,ranges:READ_RANGES});
  const rows=index=>result.data.valueRanges?.[index]?.values??[];
  const guidance=new Map(rows(4).map(row=>[row[0]||'',row[2]||'']));
+ const workouts=rows(2).map(r=>({recordId:r[0]||'',sessionDate:sheetDate(r[1]),versionId:r[2]||'',cycleWeek:Number(r[3]),dayName:r[4]||'',exerciseId:r[5]||'',exerciseName:r[6]||'',setNumber:Number(r[7]),reps:r[8]||'',weight:r[9]||'',comment:r[10]||'',updatedAt:r[11]||''}));
+ const stats=rows(3).map(r=>({exerciseId:r[0]||'',exerciseName:r[1]||'',period:r[2]||'',sessions:r[3]||'',firstWeight:r[4]||'',latestWeight:r[5]||'',bestWeight:r[6]||'',change:r[7]||'',changePercent:r[8]||'',lastPerformed:sheetDate(r[9])}));
  return {
   versions:rows(0).map(r=>({id:r[0]||'',name:r[1]||'',effectiveFrom:sheetDate(r[2]),effectiveTo:sheetDate(r[3]),cycleWeeks:Number(r[4])||1,notes:r[5]||''})),
   exercises:rows(1).map(r=>({versionId:r[0]||'',weekFrom:Number(r[1]),weekTo:Number(r[2]),dayOfWeek:Number(r[3]),dayName:r[4]||'',dayOrder:Number(r[5]),exerciseId:r[6]||'',exerciseName:r[7]||'',exerciseOrder:Number(r[8]),sets:Number(r[9]),targetReps:r[10]||'',restSeconds:Number(r[11]),equipment:r[12]||'',instructions:r[13]||'',supersetId:r[14]||'',guidance:guidance.get(r[6]||'')||''})),
-  workouts:rows(2).map(r=>({recordId:r[0]||'',sessionDate:sheetDate(r[1]),versionId:r[2]||'',cycleWeek:Number(r[3]),dayName:r[4]||'',exerciseId:r[5]||'',exerciseName:r[6]||'',setNumber:Number(r[7]),reps:r[8]||'',weight:r[9]||'',comment:r[10]||'',updatedAt:r[11]||''})),
-  stats:rows(3).map(r=>({exerciseId:r[0]||'',exerciseName:r[1]||'',period:r[2]||'',sessions:r[3]||'',firstWeight:r[4]||'',latestWeight:r[5]||'',bestWeight:r[6]||'',change:r[7]||'',changePercent:r[8]||'',lastPerformed:sheetDate(r[9])})),
+  workouts,
+  stats:completeHistoricalStats(stats,workouts),
  };
 }
 

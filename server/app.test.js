@@ -23,6 +23,23 @@ describe('server',()=>{
   expect(response.body.exercises[0].guidance).toBe('Work up to a heavy 3–5-rep max.');
   expect(response.body.exercises[0].supersetId).toBe('lower-a');
  });
+ it('returns every historical exercise even when the Stats tab is incomplete',async()=>{
+  const batchGet=vi.fn().mockResolvedValue({data:{valueRanges:[
+   {values:[]},
+   {values:[]},
+   {values:[
+    ['squat-1','2026-09-01','v1','1','Day','squat','Squat','1','5','100','',''],
+    ['row-1','2026-09-01','v1','1','Day','row','Bent Over Row','1','8','80','',''],
+   ]},
+   {values:[]},
+   {values:[]},
+  ]}});
+  const sheets={spreadsheets:{values:{batchGet}}};
+  const response=await request(app({sheets,sheetId:'test'})).get('/api/v1/bootstrap').expect(200);
+  const allTime=response.body.stats.filter(stat=>stat.period==='all').map(stat=>stat.exerciseId);
+  expect(allTime).toEqual(['row','squat']);
+  expect(response.body.stats).toHaveLength(6);
+ });
  it('writes browser input as raw values',async()=>{
   const update=vi.fn().mockResolvedValue({});
   const sheets={spreadsheets:{values:{get:vi.fn().mockResolvedValue({data:{values:[['record-1']]}}),update}}};
