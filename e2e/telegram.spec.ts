@@ -10,7 +10,7 @@ test('Telegram uses the app UI, signed API requests, safe areas and native Back'
   if(route.request().url().endsWith('/context'))return route.fulfill({json:{text:'# Workout context\nExample context'}});
   return route.fulfill({json:{versions:[{id:'v1',name:'Routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:1}],exercises:[],workouts:[],stats:[]}});
  });
- await page.goto('/?telegram=1');
+ await page.goto('/gym/?telegram=1');
  await expect(page.locator('.view')).toHaveCount(4);
  await expect(page.locator('html')).toHaveClass('telegram');
  expect(await page.locator('.rail').evaluate(el=>el.clientHeight)).toBe(720);
@@ -25,7 +25,7 @@ test('Telegram uses the app UI, signed API requests, safe areas and native Back'
 test('unsigned Mini App cannot display routine data',async({page})=>{
  await page.route('https://telegram.org/js/**',route=>route.fulfill({body:''}));
  await page.route('**/api/v1/**',route=>route.fulfill({status:401,json:{error:{message:'Open Gym from Telegram to continue.'}}}));
- await page.goto('/?telegram=1');
+ await page.goto('/gym/?telegram=1');
  await expect(page.getByText('Open Gym from Telegram to continue.')).toBeVisible();
  await expect(page.locator('.rail')).toHaveCount(0);
 });
@@ -41,7 +41,7 @@ test('Telegram workout draft survives reopening and submits through the signed A
   if(route.request().url().endsWith('/context'))return route.fulfill({json:{text:'# Context'}});
   return route.fulfill({json:{versions:[{id:'v1',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:1}],exercises:[{versionId:'v1',weekFrom:1,weekTo:1,dayOfWeek:3,dayName:'Wednesday',dayOrder:1,exerciseId:'bench',exerciseName:'Bench Press',exerciseOrder:1,sets:1,targetReps:'5',restSeconds:120}],workouts:[],stats:[]}});
  });
- await page.goto('/?telegram=1');
+ await page.goto('/gym/?telegram=1');
  await page.getByRole('button',{name:/Bench Press/}).click();
  await page.getByLabel('Bench Press set 1 reps').fill('5');
  await page.getByLabel('Bench Press set 1 weight').fill('135');
@@ -53,4 +53,18 @@ test('Telegram workout draft survives reopening and submits through the signed A
  expect(submitted.results).toHaveLength(1);
  expect(submitted.results[0]).toMatchObject({reps:'5',weight:'135',exerciseId:'bench'});
  expect(await page.evaluate(()=>Object.keys(localStorage).some(key=>key.startsWith('gym-tracker:workout-draft:')))).toBe(false);
+});
+
+test('browser loads workout UI without Telegram credentials',async({page})=>{
+ await page.route('https://telegram.org/js/**',route=>route.abort());
+ await page.route('**/api/v1/**',route=>{
+  expect(new URL(route.request().url()).pathname).toMatch(/^\/gym\/api\//);
+  expect(route.request().headers()['x-telegram-init-data']).toBeUndefined();
+  if(route.request().url().endsWith('/context'))return route.fulfill({json:{text:'# Workout context'}});
+  return route.fulfill({json:{versions:[{id:'v1',name:'Routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:1}],exercises:[],workouts:[],stats:[]}});
+ });
+ await page.goto('/gym/');
+ await expect(page.locator('.view')).toHaveCount(4);
+ await page.reload();
+ await expect(page.locator('.view')).toHaveCount(4);
 });

@@ -18,7 +18,7 @@ describe('server',()=>{
    {values:[['squat','Squat','Work up to a heavy 3–5-rep max.']]},
   ]}});
   const sheets={spreadsheets:{values:{batchGet}}};
-  const response=await request(app({sheets,sheetId:'test'})).get('/api/v1/bootstrap').expect(200);
+  const response=await request(app({sheets,sheetId:'test'})).get('/gym/api/v1/bootstrap').expect(200);
   expect(batchGet).toHaveBeenCalledWith(expect.objectContaining({ranges:expect.arrayContaining(['Exercises!A2:C'])}));
   expect(response.body.exercises[0].guidance).toBe('Work up to a heavy 3–5-rep max.');
   expect(response.body.exercises[0].supersetId).toBe('lower-a');
@@ -35,7 +35,7 @@ describe('server',()=>{
    {values:[]},
   ]}});
   const sheets={spreadsheets:{values:{batchGet}}};
-  const response=await request(app({sheets,sheetId:'test'})).get('/api/v1/bootstrap').expect(200);
+  const response=await request(app({sheets,sheetId:'test'})).get('/gym/api/v1/bootstrap').expect(200);
   const allTime=response.body.stats.filter(stat=>stat.period==='all').map(stat=>stat.exerciseId);
   expect(allTime).toEqual(['row','squat']);
   expect(response.body.stats).toHaveLength(6);
@@ -44,7 +44,7 @@ describe('server',()=>{
   const update=vi.fn().mockResolvedValue({});
   const sheets={spreadsheets:{values:{get:vi.fn().mockResolvedValue({data:{values:[['record-1']]}}),update}}};
   const result={recordId:'record-1',sessionDate:'2026-01-01',versionId:'v1',cycleWeek:1,dayName:'Day',exerciseId:'exercise',exerciseName:'Exercise',setNumber:1,reps:'5',weight:'100',comment:'=1+1',updatedAt:'2026-01-01T00:00:00.000Z'};
-  await request(app({sheets,sheetId:'test'})).post('/api/v1/results').send(result).expect(204);
+  await request(app({sheets,sheetId:'test'})).post('/gym/api/v1/results').send(result).expect(204);
   expect(update).toHaveBeenCalledWith(expect.objectContaining({valueInputOption:'RAW'}));
  });
  it('replaces every row for a submitted session date and verifies the sheet',async()=>{
@@ -54,7 +54,7 @@ describe('server',()=>{
   const clear=vi.fn().mockResolvedValue({});
   const sheets={spreadsheets:{values:{get,update,clear}}};
   const row={recordId:'new-set-1',sessionDate:'2026-01-02',versionId:'v1',cycleWeek:1,dayName:'Day',exerciseId:'exercise',exerciseName:'Exercise',setNumber:1,reps:'6',weight:'105',comment:'done',updatedAt:'2026-01-02T00:00:00.000Z'};
-  await request(app({sheets,sheetId:'test'})).post('/api/v1/results/session').send({sessionDate:'2026-01-02',results:[row]}).expect(204);
+  await request(app({sheets,sheetId:'test'})).post('/gym/api/v1/results/session').send({sessionDate:'2026-01-02',results:[row]}).expect(204);
   expect(update).toHaveBeenCalledWith(expect.objectContaining({valueInputOption:'RAW',requestBody:{values:[expect.arrayContaining(['old-other']),expect.arrayContaining(['new-set-1'])]}}));
   expect(clear).toHaveBeenCalled();
   expect(get).toHaveBeenCalledTimes(2);

@@ -6,7 +6,7 @@ test('version-specific exercise instructions override shared catalog guidance',a
  await page.clock.setFixedTime(new Date('2026-09-16T12:00:00'));
  const exercise={...cachedExercise,exerciseId:'push-up',exerciseName:'Push-Up',targetReps:'5–20',instructions:'Start at RPE 7, about three reps in reserve.',guidance:'Old program: progress after three sets of fifteen.'};
  await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions:[cachedVersion],exercises:[exercise],workouts:[],stats:[]}}));
- await page.goto('/');
+ await page.goto('/gym/');
  await page.getByRole('button',{name:/Push-Up.*reps/}).click();
  await expect(page.getByText(exercise.instructions,{exact:true})).toBeVisible();
  await expect(page.getByText(exercise.guidance,{exact:true})).toHaveCount(0);
@@ -22,7 +22,7 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  let workouts=[saved('bench','Bench Press',1),saved('bench','Bench Press',2),saved('row','Bent Over Row',1),saved('row','Bent Over Row',2)];
  await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions,exercises,workouts,stats:[]}}));
  await page.route('**/api/v1/results/session',async r=>{writes++;workouts=(await r.request().postDataJSON()).results;return r.fulfill({status:204})});
- await page.goto('/');
+ await page.goto('/gym/');
  await expect(page.locator('nav')).toHaveCount(0);
  await expect.poll(()=>page.locator('.rail').evaluate(e=>e.scrollLeft)).toBeGreaterThan(300);
  await expect(page.getByRole('heading',{name:"Today's workout"})).toBeInViewport();
@@ -78,7 +78,7 @@ test('shows the next upcoming workout when today is a rest day',async({page})=>{
  const versions=[{id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''}];
  const exercises=[{versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:5,dayName:'Friday — Strength',dayOrder:1,exerciseId:'squat',exerciseName:'Squat',exerciseOrder:1,sets:2,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:''}];
  await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions,exercises,workouts:[],stats:[]}}));
- await page.goto('/');
+ await page.goto('/gym/');
  await expect(page.getByRole('heading',{name:'Next workout'})).toBeInViewport();
  await expect(page.locator('.compact-header').getByText('Friday — Strength')).toBeVisible();
  await expect(page.getByText(/2026-09-04/)).toBeVisible();
@@ -94,7 +94,7 @@ test('renders a superset as one expandable row with two editable blocks',async({
   {...shared,exerciseId:'reverse-fly',exerciseName:'Reverse Fly',exerciseOrder:2,equipment:'Dumbbell',supersetId:'pull-rear-delt',guidance:'Pair these with lat pulldowns as a superset.'},
  ];
  await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions:[cachedVersion],exercises,workouts:[],stats:[]}}));
- await page.goto('/');
+ await page.goto('/gym/');
  const superset=page.locator('.current-exercise.superset');
  await expect(superset).toHaveCount(1);
  await expect(superset.getByRole('button',{name:/Lat Pulldown.*Reverse Fly.*Superset/})).toBeVisible();
@@ -123,7 +123,7 @@ test('shows the complete new routine when today has results from an older versio
  const versions=[{...cachedVersion,id:'v1',effectiveTo:'2026-09-01'},{...cachedVersion,id:'v2',effectiveFrom:'2026-09-02'}];
  const oldResult={...cachedWorkout('10','80'),versionId:'v1',exerciseId:'pulldown',exerciseName:'Lat Pulldown'};
  await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions,exercises,workouts:[oldResult],stats:[]}}));
- await page.goto('/');
+ await page.goto('/gym/');
  const superset=page.locator('.current-exercise.superset');
  await expect(superset).toContainText('Lat Pulldown');
  await expect(superset).toContainText('Reverse Fly');
@@ -136,7 +136,7 @@ test('local draft survives reload and overrides refreshed Sheet values',async({p
  await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
  let sheetWeight='100';
  await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions:[cachedVersion],exercises:[cachedExercise],workouts:[cachedWorkout('5',sheetWeight)],stats:[]}}));
- await page.goto('/');
+ await page.goto('/gym/');
  await page.getByRole('button',{name:/Bench Press/}).click();
  const reps=page.getByLabel('Bench Press set 1 reps');
  const weight=page.getByLabel('Bench Press set 1 weight');
@@ -169,7 +169,7 @@ test('history expands workouts and preserves recorded exercise order',async({pag
   {...base,recordId:'bench-1',exerciseId:'bench',exerciseName:'Bench Press',setNumber:1},
  ];
  await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions:[{id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''}],exercises:[],workouts,stats:[]}}));
- await page.goto('/');
+ await page.goto('/gym/');
  await page.locator('.rail').evaluate(element=>element.scrollTo({left:0}));
  const workout=page.getByRole('button',{name:/2026-08-31.*2 exercises/});
  await expect(workout).toBeVisible();
@@ -187,7 +187,7 @@ test('stats uses expandable exercise blocks instead of pages',async({page})=>{
   {exerciseId:'row',exerciseName:'Bent Over Row',period:'all',sessions:3,firstWeight:'80',latestWeight:'90',bestWeight:'90',change:'10',changePercent:'12.5%',lastPerformed:'2026-08-31'},
  ];
  await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions:[{id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''}],exercises:[],workouts:[],stats}}));
- await page.goto('/');
+ await page.goto('/gym/');
  await page.locator('.rail').evaluate(element=>element.scrollTo({left:element.clientWidth*2}));
  await expect(page.getByRole('heading',{name:'Stats'})).toBeInViewport();
  const bench=page.getByRole('button',{name:'Bench Press'});
@@ -210,7 +210,7 @@ test('browse workout days, retain drafts, and submit a past or upcoming date',as
  let submitted:any;
  await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions:[cachedVersion],exercises:[cachedExercise,friday],workouts:[],stats:[]}}));
  await page.route('**/api/v1/results/session',async r=>{submitted=r.request().postDataJSON();await r.fulfill({status:204})});
- await page.goto('/');
+ await page.goto('/gym/');
  const fridayButton=page.getByRole('button',{name:/Next workout: Friday — Strength.*2026-09-04/});
  await revealEdge(page,1);await fridayButton.click();
  await page.getByRole('button',{name:/Squat.*reps/}).click();
@@ -239,7 +239,7 @@ async function navigationFixture(page:import('@playwright/test').Page){
  await page.clock.install({time:new Date('2026-09-02T12:00:00')});
  const friday={...cachedExercise,dayOfWeek:5,dayName:'Friday — Strength',exerciseId:'squat',exerciseName:'Squat'};
  await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions:[cachedVersion],exercises:[{...cachedExercise,sets:12},friday],workouts:[],stats:[]}}));
- await page.goto('/');
+ await page.goto('/gym/');
  await page.clock.pauseAt(new Date('2026-09-02T12:01:00'));
 }
 async function touch(page:import('@playwright/test').Page,type:string,y:number){
@@ -304,7 +304,7 @@ test('workout header explains a transition from a six-week cycle to a weekly rou
   {...cachedExercise,versionId:'new',weekTo:1,dayOfWeek:5,dayName:'Friday — Home'},
  ];
  await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions,exercises,workouts:[],stats:[]}}));
- await page.goto('/');
+ await page.goto('/gym/');
  const header=page.locator('.current-workout-view .compact-header');
  await expect(header).toContainText("Today's workout");
  await expect(header.locator('.eyebrow')).toHaveText('Previous strength program · Week 1 of 6');
@@ -389,7 +389,7 @@ test('Friday navigates to Wednesday across routine versions and submits its orig
  let submitted:any;
  await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions,exercises,workouts:[],stats:[]}}));
  await page.route('**/api/v1/results/session',async r=>{submitted=r.request().postDataJSON();await r.fulfill({status:204})});
- await page.goto('/');
+ await page.goto('/gym/');
  await expect(page.locator('.current-workout-view .compact-header')).toContainText('2026-09-11');
  await revealEdge(page,-1);
  await page.getByRole('button',{name:/Previous workout: Wednesday.*2026-09-09/}).click({timeout:2500});

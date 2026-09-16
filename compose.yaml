@@ -30,4 +30,4 @@ services:
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/google.json
       MINI_APP_PORT: ${MINI_APP_PORT:-8083}
-      HEALTHCHECK_URL: http://127.0.0.1:${MINI_APP_PORT:-8083}/api/health/live
+      HEALTHCHECK_URL: http://127.0.0.1:${MINI_APP_PORT:-8083}/gym/api/health/live

@@ -20,7 +20,17 @@ export function telegramAuth({token}){
  if(!token)throw new Error('Telegram access configuration is required');
  return(req,res,next)=>{
   res.set('Cache-Control','no-store');
-  try{validateInitData(req.get('X-Telegram-Init-Data'),token)}catch{return res.status(401).json({error:{message:'Open Gym from Telegram to continue.'}})}
+  const launch=req.get('X-Telegram-Init-Data');
+  // Serve strips client-supplied identity headers; the backend binds to loopback.
+  if(launch!==undefined){
+   try{validateInitData(launch,token)}catch{return res.status(401).json({error:{message:'Invalid Telegram session. Reopen the app.'}})}
+  }else{
+   if(!req.get('Tailscale-User-Login')?.trim())return res.status(401).json({error:{message:'Connect to Tailscale to open Gym.'}});
+   if(!['GET','HEAD','OPTIONS'].includes(req.method)){
+    const origin=req.get('Origin');
+    if(req.get('X-Gym-Request')!=='1'||['cross-site','same-site'].includes(req.get('Sec-Fetch-Site'))||(origin&&origin!==`https://${req.get('Host')}`))return res.status(403).json({error:{message:'Same-origin application request required.'}});
+   }
+  }
   next();
  };
 }

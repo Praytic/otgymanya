@@ -15,5 +15,6 @@ export function createApp({sheets,staticDir,sheetId=spreadsheetId(),apiAuth}={})
  app.post('/api/v1/results',async(req,res,next)=>{try{await upsertResult(sheets,sheetId,req.body);res.status(204).end()}catch(e){next(e)}});
  app.post('/api/v1/results/session',async(req,res,next)=>{try{await replaceSession(sheets,sheetId,req.body?.sessionDate,req.body?.results);res.status(204).end()}catch(e){next(e)}});
  if(staticDir){app.use(express.static(staticDir)); app.get(/.*/,(_req,res)=>res.sendFile(path.join(staticDir,'index.html')))}
- app.use((e,_req,res,_next)=>{const status=e.status||500; res.status(status).json({error:{code:status===400?'INVALID_RESULT':'SHEETS_ERROR',message:status===400?e.message:'Google Sheets request failed'}})}); return app;
+ app.use((e,_req,res,_next)=>{const status=e.status||500; res.status(status).json({error:{code:status===400?'INVALID_RESULT':'SHEETS_ERROR',message:status===400?e.message:'Google Sheets request failed'}})});
+ return express().disable('x-powered-by').use('/gym',app);
 }

@@ -11,9 +11,11 @@ export function initializeTelegram(){
 }
 export function apiFetch(url:string,options:RequestInit={}){
  const headers=new Headers(options.headers);
+ headers.set('X-Gym-Request','1');
  const raw=window.Telegram?.WebApp.initData;
  if(raw)headers.set('X-Telegram-Init-Data',raw);
- return fetch(url,{...options,headers});
+ const base=import.meta.env.BASE_URL.replace(/\/$/,'');
+ return fetch(base+url,{...options,headers});
 }
 export function useTelegramNavigation(view:number,setView:(view:number)=>void){
  useEffect(()=>{

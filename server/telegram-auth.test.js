@@ -12,9 +12,33 @@ describe('Telegram access',()=>{
  });
  it('guards all data reads and writes before Sheets access',async()=>{
   const app=createApp({sheets:{},sheetId:'test',apiAuth:telegramAuth({token})});
-  for(const route of ['/api/v1/bootstrap','/api/v1/context'])await request(app).get(route).expect(401);
-  for(const route of ['/api/v1/results','/api/v1/results/session'])await request(app).post(route).send({}).expect(401);
-  await request(app).get('/api/v1/context').set('X-Telegram-Init-Data',signed()).expect(200);
-  await request(app).get('/api/v1/context').set('X-Telegram-Init-Data',signed().replace('42','43')).expect(401);
+  for(const route of ['/gym/api/v1/bootstrap','/gym/api/v1/context'])await request(app).get(route).expect(401);
+  for(const route of ['/gym/api/v1/results','/gym/api/v1/results/session'])await request(app).post(route).send({}).expect(401);
+  await request(app).get('/gym/api/v1/context').set('X-Telegram-Init-Data',signed()).expect(200);
+  await request(app).get('/gym/api/v1/context').set('X-Telegram-Init-Data',signed().replace('42','43')).expect(401);
+ });
+});
+
+describe('Tailscale browser access',()=>{
+ const app=createApp({sheets:{},sheetId:'test',apiAuth:telegramAuth({token})});
+ const browser={'Tailscale-User-Login':'synthetic@example.test'};
+ it('allows browser reads, keeps invalid launches rejected, and rejects foreign writes',async()=>{
+  await request(app).get('/gym/api/v1/context').set(browser).expect(200);
+  await request(app).get('/gym/api/v1/context').set({...browser,'X-Telegram-Init-Data':'invalid'}).expect(401);
+  await request(app).post('/gym/api/v1/results/session').set(browser).send({}).expect(403);
+  await request(app).post('/gym/api/v1/results/session').set({...browser,'X-Gym-Request':'1',Origin:'https://foreign.test'}).send({}).expect(403);
+  // An application request passes authentication and reaches payload validation.
+  await request(app).post('/gym/api/v1/results/session').set({...browser,'X-Gym-Request':'1'}).send({}).expect(400);
+ });
+});
+
+describe('Gym path mount',()=>{
+ const app=createApp({sheets:{},sheetId:'test',apiAuth:telegramAuth({token})});
+ it('serves the prefixed API with the same browser and Telegram permissions',async()=>{
+  await request(app).get('/gym/api/health/live').expect(200);
+  await request(app).get('/gym/api/v1/context').expect(401);
+  await request(app).get('/gym/api/v1/context').set('Tailscale-User-Login','synthetic@example.test').expect(200);
+  await request(app).get('/gym/api/v1/context').set('X-Telegram-Init-Data',signed()).expect(200);
+  await request(app).post('/gym/api/v1/results/session').set({'Tailscale-User-Login':'synthetic@example.test','X-Gym-Request':'1'}).send({}).expect(400);
  });
 });
