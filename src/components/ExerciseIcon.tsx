@@ -39,6 +39,7 @@ import bicepCurl from '@bryllim/workout-guide/assets/bicep-curl/frame-1.png';
 import lyingLegRaise from '@bryllim/workout-guide/assets/lying-leg-raise/frame-1.png';
 import standingCalfRaise from '@bryllim/workout-guide/assets/standing-calf-raise/frame-1.png';
 import chinUp from '@bryllim/workout-guide/assets/chin-up/frame-1.png';
+import abWheel from '@bryllim/workout-guide/assets/ab-wheel/frame-1.png';
 
 const icons:Record<string,string>={
  'bench-press':benchPress,
@@ -87,6 +88,7 @@ const icons:Record<string,string>={
  'dumbbell-standing-calf-raise':standingCalfRaise,
  'chin-up':chinUp,
  'dumbbell-upright-row':dumbbellUprightRow,
+ 'ab-wheel':abWheel,
 };
 
 export function ExerciseIcon({exerciseId}:{exerciseId:string}){

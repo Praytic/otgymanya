@@ -14,6 +14,7 @@ const routineExerciseIds=[
  'dumbbell-front-squat','single-leg-dumbbell-deadlift','sit-up','dumbbell-bent-over-row',
  'bodyweight-single-leg-hip-thrust','dumbbell-biceps-curl','lying-leg-raise',
  'dumbbell-standing-calf-raise','chin-up','dumbbell-upright-row',
+ 'ab-wheel',
 ];
 
 describe('ExerciseIcon',()=>{

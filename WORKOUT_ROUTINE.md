@@ -1,6 +1,6 @@
 # Actual workout routine
 
-Google Sheet snapshot `rp-hypertrophy-3day-le-v1`, effective September 16, 2026. The Google Sheet remains the source of truth. Earlier routine and workout records remain unchanged; the previous snapshot ends September 15.
+Google Sheet snapshot `rp-hypertrophy-3day-le-v2`, effective September 18, 2026. The Google Sheet remains the source of truth. It replaces Friday's final Lying Leg Raise with Ab Wheel at the owner's request. Earlier routine and workout records remain unchanged; `rp-hypertrophy-3day-le-v1` covers September 16–17.
 
 Source: [RP Hypertrophy v4.1: 3-Day Full Body — Limited Equipment](https://www.liftosaur.com/p/84e4a603), by KillerK009. [Author's progression and usage instructions](https://www.reddit.com/r/liftosaur/comments/1s6cs9p/rp_hypertrophy_program_v41_release/). This is an RP-inspired community program, not an official RP Strength product.
 
@@ -28,7 +28,7 @@ These are the author's opening working-set counts and first-set targets, not a n
 | Dumbbell Shoulder Press | 2 | 8–12 |
 | Dumbbell Biceps Curl | 3 | 10–15 |
 | Overhead Dumbbell Triceps Extension | 3 | 10–15 |
-| Lying Leg Raise | 2 | 8–12 |
+| Ab Wheel | 2 | 8–12 |
 
 ## Monday — Gym / RP Day 3
 
