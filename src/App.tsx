@@ -20,11 +20,12 @@ export default function App(){
  const submit=useCallback(async(sessionDate:string,results:WorkoutSet[])=>{const response=await apiFetch('/api/v1/results/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionDate,results})}); if(!response.ok)throw new Error('Submit failed'); setData(current=>current&&({...current,workouts:[...current.workouts.filter(w=>w.sessionDate!==sessionDate),...results]}));void load()},[load]);
  const editWorkout=useCallback((date:string)=>{setEditDate(date);setView(1)},[]);
  const editDateOpened=useCallback(()=>setEditDate(null),[]);
+ const cancelEdit=useCallback(()=>setView(0),[]);
  if(error&&!data)return <main className="state"><p>{error}</p><Button onClick={load}>Retry</Button></main>;
  if(!data||!current)return <main className="state">Loading routine…</main>;
  return <div className="app"><div className="rail" ref={rail} onScroll={e=>{const el=e.currentTarget; clearTimeout(Number(el.dataset.timer)); el.dataset.timer=String(setTimeout(()=>setView(Math.round(el.scrollLeft/el.clientWidth)),80))}}>
    <section className="view" aria-label="History"><History workouts={data.workouts} onEdit={editWorkout}/></section>
-   <section className="view current-workout-view" tabIndex={0} aria-label="Current week"><CurrentWeek active={view===1} version={current} versions={data.versions} exercises={data.exercises} workouts={data.workouts} onSubmit={submit} editDate={editDate} onEditDateOpened={editDateOpened}/></section>
+   <section className="view current-workout-view" tabIndex={0} aria-label="Current week"><CurrentWeek active={view===1} version={current} versions={data.versions} exercises={data.exercises} workouts={data.workouts} onSubmit={submit} editDate={editDate} onEditDateOpened={editDateOpened} onCancelEdit={cancelEdit}/></section>
    <section className="view" aria-label="Stats"><Stats stats={data.stats}/></section>
    <section className="view markdown" aria-label="Context"><ReactMarkdown>{contextText}</ReactMarkdown></section>
  </div></div>;
