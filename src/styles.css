@@ -55,6 +55,7 @@ h3{font-size:20px;margin:0}
 .history-details{border-top:1px solid #e2e2e2;padding:16px}
 .history-card h2{margin-top:0}
 .history-sets p{display:flex;justify-content:space-between;border-top:1px solid #e2e2e2;padding:12px 0;margin:0}
+.history-actions{display:flex;justify-content:flex-end;margin-top:16px}
 .periods{margin-bottom:24px}
 .periods>div{width:100%}
 .periods button{flex:1;min-width:0}

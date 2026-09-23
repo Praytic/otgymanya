@@ -181,6 +181,26 @@ test('history expands workouts and preserves recorded exercise order',async({pag
  await expect(page.getByRole('heading',{name:'Bench Press'})).toBeVisible();
 });
 
+test('opens a historical workout in the editor and saves its changes',async({page})=>{
+ await page.clock.setFixedTime(new Date('2026-09-23T12:00:00'));
+ let workouts=[cachedWorkout('5','100')];
+ let submitted:any;
+ await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions:[cachedVersion],exercises:[cachedExercise],workouts,stats:[]}}));
+ await page.route('**/api/v1/results/session',async route=>{submitted=route.request().postDataJSON();workouts=submitted.results;await route.fulfill({status:204})});
+ await page.goto('/gym/');
+ await page.locator('.rail').evaluate(element=>element.scrollTo({left:0}));
+ await page.getByRole('button',{name:/2026-09-02.*1 exercise/}).click();
+ await page.getByRole('button',{name:'Edit workout'}).click();
+ await expect(page.getByRole('heading',{name:'Edit workout'})).toBeInViewport();
+ await expect(page.locator('.current-workout-view time')).toHaveText('2026-09-02');
+ await page.getByRole('button',{name:/Bench Press.*reps/}).click();
+ await page.getByLabel('Bench Press set 1 weight').fill('105');
+ await page.getByRole('button',{name:'Save changes'}).click();
+ await expect(page.getByText('Changes saved',{exact:true})).toBeVisible();
+ expect(submitted.sessionDate).toBe('2026-09-02');
+ expect(submitted.results[0]).toMatchObject({versionId:'v1',exerciseId:'bench',weight:'105'});
+});
+
 test('stats uses expandable exercise blocks instead of pages',async({page})=>{
  const stats=[
   {exerciseId:'bench',exerciseName:'Bench Press',period:'all',sessions:4,firstWeight:'100',latestWeight:'120',bestWeight:'125',change:'20',changePercent:'20%',lastPerformed:'2026-08-31'},

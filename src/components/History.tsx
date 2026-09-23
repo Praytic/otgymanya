@@ -1,4 +1,5 @@
 import {useMemo,useState} from 'react';
+import {Button} from 'baseui/button';
 import type {WorkoutSet} from '../types';
 import {Pager} from './CurrentWeek';
 import {LucideIcon} from './LucideIcon';
@@ -20,7 +21,7 @@ function recordedWorkouts(workouts:WorkoutSet[]):RecordedWorkout[]{
  }).sort((a,b)=>b.date.localeCompare(a.date));
 }
 
-export function History({workouts}:{workouts:WorkoutSet[]}){
+export function History({workouts,onEdit}:{workouts:WorkoutSet[];onEdit?:(date:string)=>void}){
  const items=useMemo(()=>recordedWorkouts(workouts),[workouts]);
  const [expanded,setExpanded]=useState<string|null>(null);
  const [pages,setPages]=useState<Record<string,number>>({});
@@ -38,7 +39,13 @@ export function History({workouts}:{workouts:WorkoutSet[]}){
    </button>
    {isExpanded&&exercise&&<div className="history-details" id={panelId}>
     <article className="history-card"><h2>{exercise.name}</h2><div className="history-sets">{exercise.sets.map((row,index)=><p key={row.recordId||index}><strong>Set {row.setNumber}</strong><span>{row.weight||'—'} lb × {row.reps||'—'}</span></p>)}</div>{comment&&<p className="comment">{comment}</p>}</article>
-    {workout.exercises.length>1&&<Pager page={page} count={workout.exercises.length} label="completed exercise" onPage={next=>setPages(current=>({...current,[workout.date]:next}))}/>}</div>}
+    {workout.exercises.length>1&&<Pager
+     page={page}
+     count={workout.exercises.length}
+     label="completed exercise"
+     onPage={next=>setPages(current=>({...current,[workout.date]:next}))}
+    />}
+    {onEdit&&<div className="history-actions"><Button kind="secondary" onClick={()=>onEdit(workout.date)}>Edit workout</Button></div>}</div>}
   </section>;
  })}</div>}</>;
 }
