@@ -42,6 +42,12 @@ h3{font-size:20px;margin:0}
 .comment-area{display:grid;gap:8px}
 .comment-area>button{justify-self:start}
 .removed-exercise{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid #d8d8d8;border-radius:12px;padding:10px 16px;color:#545454}
+.replace-picker{margin-top:12px;border-top:1px solid #e2e2e2;padding-top:12px;display:grid;gap:8px}
+.replace-picker ul{list-style:none;margin:0;padding:0;max-height:240px;overflow-y:auto;display:grid;gap:4px}
+.replace-picker li{margin:0}
+.replace-option{display:flex;align-items:center;gap:12px;width:100%;padding:6px;border:0;border-radius:10px;background:transparent;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.replace-option:active{background:#efefef}
+.replace-option .exercise-icon{width:40px;height:40px}
 .current-exercise .grouped-removed{border-width:1px 0 0;border-radius:0}
 .removed-empty{margin-top:0}
 .submit-row{display:flex;align-items:center;gap:16px;padding-bottom:16px}

@@ -23,6 +23,21 @@ describe('server',()=>{
   expect(response.body.exercises[0].guidance).toBe('Work up to a heavy 3–5-rep max.');
   expect(response.body.exercises[0].supersetId).toBe('lower-a');
  });
+ it('exposes the exercise catalogue from the Exercises sheet',async()=>{
+  const batchGet=vi.fn().mockResolvedValue({data:{valueRanges:[
+   {values:[]},
+   {values:[]},
+   {values:[]},
+   {values:[]},
+   {values:[['squat','Squat','Work up to a heavy 3–5-rep max.'],['','Nameless','Skipped'],['push-up','Push-Up','']]},
+  ]}});
+  const sheets={spreadsheets:{values:{batchGet}}};
+  const response=await request(app({sheets,sheetId:'test'})).get('/gym/api/v1/bootstrap').expect(200);
+  expect(response.body.catalogue).toEqual([
+   {exerciseId:'squat',exerciseName:'Squat',guidance:'Work up to a heavy 3–5-rep max.'},
+   {exerciseId:'push-up',exerciseName:'Push-Up',guidance:''},
+  ]);
+ });
  it('returns every historical exercise even when the Stats tab is incomplete',async()=>{
   const batchGet=vi.fn().mockResolvedValue({data:{valueRanges:[
    {values:[]},

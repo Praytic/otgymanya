@@ -25,7 +25,7 @@ export default function App(){
  if(!data||!current)return <main className="state">Loading routine…</main>;
  return <div className="app"><div className="rail" ref={rail} onScroll={e=>{const el=e.currentTarget; clearTimeout(Number(el.dataset.timer)); el.dataset.timer=String(setTimeout(()=>setView(Math.round(el.scrollLeft/el.clientWidth)),80))}}>
    <section className="view" aria-label="History"><History workouts={data.workouts} onEdit={editWorkout}/></section>
-   <section className="view current-workout-view" tabIndex={0} aria-label="Current week"><CurrentWeek active={view===1} version={current} versions={data.versions} exercises={data.exercises} workouts={data.workouts} onSubmit={submit} editDate={editDate} onEditDateOpened={editDateOpened} onCancelEdit={cancelEdit}/></section>
+   <section className="view current-workout-view" tabIndex={0} aria-label="Current week"><CurrentWeek active={view===1} version={current} versions={data.versions} exercises={data.exercises} catalogue={data.catalogue??[]} workouts={data.workouts} onSubmit={submit} editDate={editDate} onEditDateOpened={editDateOpened} onCancelEdit={cancelEdit}/></section>
    <section className="view" aria-label="Stats"><Stats stats={data.stats}/></section>
    <section className="view markdown" aria-label="Context"><ReactMarkdown>{contextText}</ReactMarkdown></section>
  </div></div>;

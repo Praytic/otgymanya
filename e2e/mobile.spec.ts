@@ -435,3 +435,38 @@ test('Friday navigates to Wednesday across routine versions and submits its orig
  await page.getByRole('button',{name:/Next workout: Monday.*2026-09-14/}).click();
  await expect(page.locator('.current-workout-view .compact-header')).toContainText('2026-09-14');
 });
+
+test('replaces a workout exercise with a catalogue exercise',async({page})=>{
+ await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
+ const versions=[{id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''}];
+ const shared={versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:3,dayName:'Wednesday — Strength',dayOrder:1,sets:2,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:'',guidance:''};
+ const exercises=[{...shared,exerciseId:'bench',exerciseName:'Bench Press',exerciseOrder:1},{...shared,exerciseId:'row',exerciseName:'Bent Over Row',exerciseOrder:2}];
+ const catalogue=[{exerciseId:'goblet-squat',exerciseName:'Goblet Squat',guidance:'Hold the bell at your chest.'},{exerciseId:'row',exerciseName:'Bent Over Row',guidance:''}];
+ let submitted:any[]=[];
+ await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions,exercises,catalogue,workouts:[],stats:[]}}));
+ await page.route('**/api/v1/results/session',async r=>{submitted=(await r.request().postDataJSON()).results;return r.fulfill({status:204})});
+ await page.goto('/gym/');
+ await page.getByRole('button',{name:/Bench Press/}).click();
+ await page.getByLabel('Bench Press set 1 reps').fill('5');
+ await page.getByRole('button',{name:'Replace Bench Press'}).click();
+ await expect(page.getByLabel('Search exercise catalogue')).toBeVisible();
+ // Exercises already in the workout are not offered as replacements.
+ await expect(page.getByRole('button',{name:'Replace with Bent Over Row'})).toHaveCount(0);
+ await page.getByLabel('Search exercise catalogue').fill('goblet');
+ await page.getByRole('button',{name:'Replace with Goblet Squat'}).click();
+ await expect(page.getByRole('button',{name:'Goblet Squat 3–5 reps · 180s rest'})).toBeVisible();
+ // Logged values are cleared, catalogue guidance is shown, the slot scheme is kept.
+ await expect(page.getByLabel('Goblet Squat set 1 reps')).toHaveValue('');
+ await expect(page.getByText('Hold the bell at your chest.')).toBeVisible();
+ await expect(page.getByRole('button',{name:'Goblet Squat 3–5 reps · 180s rest'}).getByText('3–5 reps · 180s rest')).toBeVisible();
+ // The replacement survives a reload through the draft.
+ await page.reload();
+ await page.getByRole('button',{name:'Goblet Squat 3–5 reps · 180s rest'}).click();
+ await expect(page.getByLabel('Goblet Squat set 1 reps')).toBeVisible();
+ await page.getByLabel('Goblet Squat set 1 reps').fill('10');
+ await page.getByRole('button',{name:'Submit workout'}).click();
+ await expect(page.getByText('Submitted')).toBeVisible();
+ expect(submitted[0].exerciseId).toBe('goblet-squat');
+ expect(submitted[0].exerciseName).toBe('Goblet Squat');
+ expect(submitted[0].reps).toBe('10');
+});

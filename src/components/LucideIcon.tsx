@@ -5,6 +5,7 @@ import {
  ChevronUp,
  MessageSquareText,
  Plus,
+ Repeat,
  Trash2,
 } from 'lucide-react';
 import type {LucideIcon as LucideIconComponent} from 'lucide-react';
@@ -17,6 +18,7 @@ const icons={
  expand:ChevronDown,
  collapse:ChevronUp,
  comment:MessageSquareText,
+ replace:Repeat,
 } satisfies Record<string,LucideIconComponent>;
 
 export type LucideIconName=keyof typeof icons;

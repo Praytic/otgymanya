@@ -1,7 +1,7 @@
 const DRAFT_PREFIX='gym-tracker:workout-draft:v1:';
 
 export type StoredDraftSet={reps:string;weight:string;repsSuggested:boolean;weightSuggested:boolean};
-export type StoredDraftExercise={exerciseId:string;sets:StoredDraftSet[];comment:string;removed?:boolean};
+export type StoredDraftExercise={exerciseId:string;sets:StoredDraftSet[];comment:string;removed?:boolean;exerciseName?:string;targetReps?:string;restSeconds?:number;equipment?:string;instructions?:string;supersetId?:string;guidance?:string};
 export type StoredWorkoutDraft={version:1;versionId:string;sessionDate:string;exercises:StoredDraftExercise[]};
 
 function storage(){try{return typeof window==='undefined'?undefined:window.localStorage}catch{return undefined}}
