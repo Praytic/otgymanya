@@ -1,6 +1,6 @@
 import {describe,expect,it} from 'vitest';
 import type {CatalogueExercise,RoutineExercise,WorkoutSet} from '../types';
-import {hydrateDayExercises,replacementExercise,sheetDayExercises,storedExercise} from './CurrentWeek';
+import {addedExercise,hydrateDayExercises,replacementExercise,sheetDayExercises,storedExercise} from './CurrentWeek';
 
 const slot=(overrides:Partial<RoutineExercise>={}):RoutineExercise=>({versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:3,dayName:'Wednesday',dayOrder:1,exerciseId:'box-squat',exerciseName:'Box Squat',exerciseOrder:1,sets:3,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:'Brace hard.',supersetId:'',guidance:'Old guidance.',...overrides});
 const catalogue:CatalogueExercise[]=[{exerciseId:'goblet-squat',exerciseName:'Goblet Squat',guidance:'Hold the bell at your chest.'},{exerciseId:'leg-curl',exerciseName:'Leg Curl',guidance:''}];
@@ -24,13 +24,13 @@ describe('replacementExercise',()=>{
 describe('sheetDayExercises',()=>{
  const day=[slot(),slot({exerciseId:'incline-bench',exerciseName:'Incline Bench Press',exerciseOrder:2,sets:2})];
  it('keeps routine exercises untouched when nothing was replaced',()=>{
-  const items=sheetDayExercises({day,existing:[row('box-squat','Box Squat',1),row('box-squat','Box Squat',2),row('incline-bench','Incline Bench Press',1)],versionId:'v1',catalogue});
+  const items=sheetDayExercises({day,week:1,existing:[row('box-squat','Box Squat',1),row('box-squat','Box Squat',2),row('incline-bench','Incline Bench Press',1)],versionId:'v1',catalogue});
   expect(items.map(i=>i.exercise.exerciseId)).toEqual(['box-squat','incline-bench']);
   expect(items[0].sets).toHaveLength(2);
   expect(items[0].sets[0].reps).toBe('5');
  });
  it('resolves a replaced exercise back into its slot with catalogue guidance',()=>{
-  const items=sheetDayExercises({day,existing:[row('goblet-squat','Goblet Squat',1),row('goblet-squat','Goblet Squat',2),row('incline-bench','Incline Bench Press',1)],versionId:'v1',catalogue});
+  const items=sheetDayExercises({day,week:1,existing:[row('goblet-squat','Goblet Squat',1),row('goblet-squat','Goblet Squat',2),row('incline-bench','Incline Bench Press',1)],versionId:'v1',catalogue});
   expect(items.map(i=>i.exercise.exerciseId)).toEqual(['goblet-squat','incline-bench']);
   const replaced=items[0].exercise;
   expect(replaced.exerciseName).toBe('Goblet Squat');
@@ -40,15 +40,43 @@ describe('sheetDayExercises',()=>{
  });
  it('prefills matching exercises from an older version as suggestions',()=>{
   const oldRow={...row('box-squat','Box Squat',1),versionId:'v0'};
-  const items=sheetDayExercises({day,existing:[oldRow],versionId:'v1',catalogue});
+  const items=sheetDayExercises({day,week:1,existing:[oldRow],versionId:'v1',catalogue});
   expect(items).toHaveLength(2);
   expect(items[0].sets[0].reps).toBe('5');
   expect(items[0].sets[0].repsSuggested).toBe(true);
   expect(items[1].sets[0].reps).toBe('');
  });
  it('drops slots that were removed without shifting replacements',()=>{
-  const items=sheetDayExercises({day,existing:[row('goblet-squat','Goblet Squat',1)],versionId:'v1',catalogue});
+  const items=sheetDayExercises({day,week:1,existing:[row('goblet-squat','Goblet Squat',1)],versionId:'v1',catalogue});
   expect(items.map(i=>i.exercise.exerciseId)).toEqual(['goblet-squat']);
+ });
+});
+
+describe('addedExercise',()=>{
+ it('appends a catalogue exercise with the neutral scheme',()=>{
+  const exercise=addedExercise({versionId:'v1',week:2,dayName:'Wednesday',dayOrder:1,exerciseOrder:2},catalogue[1]);
+  expect(exercise.exerciseId).toBe('leg-curl');
+  expect(exercise.exerciseName).toBe('Leg Curl');
+  expect(exercise.guidance).toBe('');
+  expect(exercise.sets).toBe(3);
+  expect(exercise.targetReps).toBe('8–12');
+  expect(exercise.restSeconds).toBe(90);
+  expect(exercise.supersetId).toBe('');
+  expect(exercise.dayName).toBe('Wednesday');
+ });
+});
+
+describe('sheetDayExercises leftovers',()=>{
+ const day=[slot()];
+ it('appends added exercises with the neutral scheme when editing a submitted session',()=>{
+  const items=sheetDayExercises({day,week:1,existing:[row('box-squat','Box Squat',1),row('leg-curl','Leg Curl',1),row('leg-curl','Leg Curl',2)],versionId:'v1',catalogue});
+  expect(items.map(i=>i.exercise.exerciseId)).toEqual(['box-squat','leg-curl']);
+  const added=items[1].exercise;
+  expect(added.exerciseName).toBe('Leg Curl');
+  expect(added.sets).toBe(3);
+  expect(added.targetReps).toBe('8–12');
+  expect(added.restSeconds).toBe(90);
+  expect(items[1].sets).toHaveLength(2);
  });
 });
 

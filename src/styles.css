@@ -27,24 +27,22 @@ h3{font-size:20px;margin:0}
 .exercise-row small{color:#545454;font-size:14px}
 .lucide-icon{display:block;width:24px;height:24px;flex:0 0 auto;stroke-width:2;background:transparent}
 .icon-button,.icon-button:hover,.icon-button:focus,.icon-button:active,.icon-button:disabled{background:transparent!important}
-.text-icon-button{display:flex!important;align-items:center;gap:8px}
 .exercise-details{border-top:1px solid #e2e2e2;padding:16px}
 .exercise-group-details>.exercise-details+.exercise-details{border-top:2px solid #bdbdbd}
 .exercise-group-details .exercise-details{margin:0}
 .exercise-details-title{margin:0 0 16px}
 .exercise-guidance{margin:0 0 16px;color:#4b4b4b;font-size:.9rem;line-height:1.45}
-.exercise-actions{display:flex;justify-content:flex-start;border-top:1px solid #e2e2e2;margin-top:16px;padding-top:12px}
+.exercise-controls{display:flex;align-items:center;gap:4px;border-top:1px solid #e2e2e2;margin-top:16px;padding-top:12px}
+.controls-spacer{flex:1}
+.add-exercise-row{display:flex;justify-content:flex-start;margin:12px 0 4px}
 .set-head,.set-row{display:grid;grid-template-columns:44px 1fr 1fr;gap:12px;align-items:center;margin:8px 0}
 .set-head{font-size:14px;color:#545454}
 .suggested-value input{color:#777!important}
-.set-actions{display:flex;justify-content:flex-end;gap:8px;margin:8px 0}
-.set-actions button{min-width:52px;justify-content:center}
-.comment-area{display:grid;gap:8px}
-.comment-area>button{justify-self:start}
+.comment-area{margin-top:8px}
 .removed-exercise{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid #d8d8d8;border-radius:12px;padding:10px 16px;color:#545454}
-.replace-picker{margin-top:12px;border-top:1px solid #e2e2e2;padding-top:12px;display:grid;gap:8px}
-.replace-picker ul{list-style:none;margin:0;padding:0;max-height:240px;overflow-y:auto;display:grid;gap:4px}
-.replace-picker li{margin:0}
+.exercise-picker{margin-top:12px;border-top:1px solid #e2e2e2;padding-top:12px;display:grid;gap:8px}
+.exercise-picker ul{list-style:none;margin:0;padding:0;max-height:240px;overflow-y:auto;display:grid;gap:4px}
+.exercise-picker li{margin:0}
 .replace-option{display:flex;align-items:center;gap:12px;width:100%;padding:6px;border:0;border-radius:10px;background:transparent;text-align:left;font:inherit;color:inherit;cursor:pointer}
 .replace-option:active{background:#efefef}
 .replace-option .exercise-icon{width:40px;height:40px}

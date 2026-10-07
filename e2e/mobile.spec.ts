@@ -54,9 +54,9 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  await expect(removeExercise.evaluate(button=>getComputedStyle(button).backgroundColor)).resolves.toBe('rgba(0, 0, 0, 0)');
  await expect(removeExercise.evaluate(button=>getComputedStyle(button.parentElement!).borderTopStyle)).resolves.toBe('solid');
  await page.getByLabel('Remove Bent Over Row').click();
- await expect(page.getByRole('button',{name:/Bent Over Row/})).toHaveCount(0);
+ await expect(page.locator('button.exercise-row',{hasText:'Bent Over Row'})).toHaveCount(0);
  await expect(page.getByText('Bent Over Row removed')).toBeVisible();
- await page.getByRole('button',{name:'Undo'}).click();
+ await page.getByLabel('Undo remove Bent Over Row').click();
  await page.getByRole('button',{name:/Bent Over Row/}).click();
  await expect(page.getByLabel('Bent Over Row set 1 reps')).toHaveValue('9');
  await expect(page.getByLabel('Bent Over Row comment')).toHaveValue('Keep this note');
@@ -469,4 +469,39 @@ test('replaces a workout exercise with a catalogue exercise',async({page})=>{
  expect(submitted[0].exerciseId).toBe('goblet-squat');
  expect(submitted[0].exerciseName).toBe('Goblet Squat');
  expect(submitted[0].reps).toBe('10');
+});
+
+test('adds a catalogue exercise to the workout',async({page})=>{
+ await page.clock.setFixedTime(new Date('2026-09-02T12:00:00'));
+ const versions=[{id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''}];
+ const shared={versionId:'v1',weekFrom:1,weekTo:6,dayOfWeek:3,dayName:'Wednesday — Strength',dayOrder:1,sets:2,targetReps:'3–5',restSeconds:180,equipment:'Barbell',instructions:'',guidance:''};
+ const exercises=[{...shared,exerciseId:'bench',exerciseName:'Bench Press',exerciseOrder:1}];
+ const catalogue=[{exerciseId:'leg-curl',exerciseName:'Leg Curl',guidance:'Squeeze at the top.'},{exerciseId:'bench',exerciseName:'Bench Press',guidance:''}];
+ let submitted:any[]=[];
+ await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions,exercises,catalogue,workouts:[],stats:[]}}));
+ await page.route('**/api/v1/results/session',async r=>{submitted=(await r.request().postDataJSON()).results;return r.fulfill({status:204})});
+ await page.goto('/gym/');
+ // Exercises already in the workout are not offered.
+ await page.getByLabel('Add exercise').click();
+ await expect(page.getByRole('button',{name:'Add Bench Press'})).toHaveCount(0);
+ await page.getByLabel('Search exercise catalogue').fill('leg');
+ await page.getByRole('button',{name:'Add Leg Curl'}).click();
+ // The added exercise opens expanded with the neutral scheme and catalogue guidance.
+ await expect(page.getByRole('button',{name:'Leg Curl 8–12 reps · 90s rest'})).toBeVisible();
+ await expect(page.getByText('Squeeze at the top.')).toBeVisible();
+ await expect(page.getByLabel('Leg Curl set 1 reps')).toBeVisible();
+ await expect(page.getByLabel('Leg Curl set 3 reps')).toBeVisible();
+ await expect(page.getByLabel('Leg Curl set 4 reps')).toHaveCount(0);
+ // Its controls sit on one icon-only row.
+ const controls=page.locator('.exercise-details', {has: page.getByLabel('Leg Curl set 1 reps')}).locator('.exercise-controls');
+ await expect(controls.getByRole('button')).toHaveCount(5);
+ await expect(controls.getByRole('button').nth(0)).toHaveAccessibleName('Add set to Leg Curl');
+ expect(await controls.locator('button').evaluateAll(buttons=>buttons.every(b=>b.textContent?.trim()===''))).toBe(true);
+ await page.getByLabel('Leg Curl set 1 reps').fill('12');
+ await page.getByRole('button',{name:'Submit workout'}).click();
+ await expect(page.getByText('Submitted')).toBeVisible();
+ const added=submitted.filter(row=>row.exerciseId==='leg-curl');
+ expect(added).toHaveLength(3);
+ expect(added[0].exerciseName).toBe('Leg Curl');
+ expect(added[0].reps).toBe('12');
 });
