@@ -1,0 +1,23 @@
+# Thin release caller (§1.5) — copy to <app-repo>/.github/workflows/release.yml
+# and set gym-routine-tracker / DOCKERFILE(S) below. This file does nothing on push or PR:
+# it runs only when the templates repo's flag workflow dispatches a release
+# event for this app (i.e. its prayticland.yaml flag was flipped to true), or
+# when manually dispatched for a drill. All verification logic lives in the
+# reusable prayticland-ci workflow in prayticland-templates.
+name: release
+
+on:
+  repository_dispatch:
+    types: [prayticland-release]
+  workflow_dispatch: {}
+
+jobs:
+  verify:
+    uses: Prayticland/prayticland-templates/.github/workflows/prayticland-ci.yml@main
+    with:
+      app: gym-routine-tracker
+      dockerfile: Dockerfile
+      # second_dockerfile: Dockerfile.ops   # multi-image repos only (Stamps)
+    secrets: inherit
+    permissions:
+      contents: read
