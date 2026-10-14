@@ -1,6 +1,6 @@
 name: gym-routine-tracker
 x-runtime: &runtime
-  image: gym-routine-tracker:local
+  image: ${GYM_IMAGE:-gym-routine-tracker:local}
   network_mode: host
   restart: unless-stopped
   read_only: true
@@ -9,6 +9,10 @@ x-runtime: &runtime
   cap_drop: [ALL]
   security_opt: [no-new-privileges:true]
   tmpfs: [/tmp]
+  labels:
+    com.praytic.gym-routine-tracker.release: ${GYM_RELEASE:-local}
+    org.opencontainers.image.version: ${GYM_VERSION:-local}
+    org.opencontainers.image.revision: ${GYM_COMMIT:-local}
   volumes:
     - type: bind
       source: ${GOOGLE_CREDENTIALS_FILE:?Set GOOGLE_CREDENTIALS_FILE}
