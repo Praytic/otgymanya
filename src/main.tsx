@@ -1,14 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import {Client as Styletron} from 'styletron-engine-atomic';
-import {Provider as StyletronProvider} from 'styletron-react';
-import {BaseProvider} from 'baseui';
-import {theme} from './theme';
+import {AppProviders} from 'prayticland-ui-libs/providers';
 import App from './App';
+import 'prayticland-ui-libs/tokens.css';
 import './styles.css';
-import './fonts.css';
+import 'prayticland-ui-libs/fonts.css';
 
 import {initializeTelegram} from './lib/telegram';
 initializeTelegram();
-const engine = new Styletron();
-ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><StyletronProvider value={engine}><BaseProvider theme={theme}><App/></BaseProvider></StyletronProvider></React.StrictMode>);
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><AppProviders><App/></AppProviders></React.StrictMode>);

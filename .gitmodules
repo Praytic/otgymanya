@@ -1,0 +1,3 @@
+[submodule "vendor/prayticland-ui-libs"]
+	path = vendor/prayticland-ui-libs
+	url = git@github.com:Prayticland/prayticland-ui-libs.git

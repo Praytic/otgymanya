@@ -11,3 +11,5 @@
 !server/**
 !public/
 !public/**
+!vendor/
+!vendor/**
