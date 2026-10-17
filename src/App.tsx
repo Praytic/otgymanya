@@ -1,4 +1,4 @@
-import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
+import {useCallback,useEffect,useMemo,useState} from 'react';
 import {Button} from 'baseui/button';
 import ReactMarkdown from 'react-markdown';
 import {apiFetch,useTelegramNavigation} from './lib/telegram';
@@ -7,15 +7,17 @@ import {activeVersion} from './lib/date';
 import {CurrentWeek} from './components/CurrentWeek';
 import {History} from './components/History';
 import {Stats} from './components/Stats';
+import {BottomNav,SwipeRail} from 'prayticland-ui-libs/components';
+import {BookOpen,ChartColumn,Dumbbell,History as HistoryIcon} from 'lucide-react';
 
 export default function App(){
- const [data,setData]=useState<Bootstrap|null>(null); const [error,setError]=useState(''); const [view,setView]=useState(1); const rail=useRef<HTMLDivElement>(null);
+ const [data,setData]=useState<Bootstrap|null>(null); const [error,setError]=useState(''); const [view,setView]=useState(1);
  const [editDate,setEditDate]=useState<string|null>(null);
  const [contextText,setContextText]=useState('');
  useTelegramNavigation(view,setView);
  useEffect(()=>{void apiFetch('/api/v1/context').then(r=>r.ok?r.json():Promise.reject()).then(value=>setContextText(value.text)).catch(()=>setContextText('Context is unavailable. Reopen the app to retry.'))},[]);
  const load=()=>apiFetch('/api/v1/bootstrap').then(async r=>{if(!r.ok)throw new Error((await r.json().catch(()=>null))?.error?.message||'Could not load workout data'); return r.json() as Promise<Bootstrap>}).then(value=>{setData(value);setError('')}).catch(e=>setError(e.message));
- useEffect(()=>{void load()},[]); useEffect(()=>{rail.current?.scrollTo({left:view*window.innerWidth,behavior:data?'auto':'smooth'})},[view,data]);
+ useEffect(()=>{void load()},[]);
  const current=useMemo(()=>data&&activeVersion(data.versions),[data]);
  const submit=useCallback(async(sessionDate:string,results:WorkoutSet[])=>{const response=await apiFetch('/api/v1/results/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionDate,results})}); if(!response.ok)throw new Error('Submit failed'); setData(current=>current&&({...current,workouts:[...current.workouts.filter(w=>w.sessionDate!==sessionDate),...results]}));void load()},[load]);
  const editWorkout=useCallback((date:string)=>{setEditDate(date);setView(1)},[]);
@@ -23,10 +25,11 @@ export default function App(){
  const cancelEdit=useCallback(()=>setView(0),[]);
  if(error&&!data)return <main className="state"><p>{error}</p><Button onClick={load}>Retry</Button></main>;
  if(!data||!current)return <main className="state">Loading routine…</main>;
- return <div className="app"><div className="rail" ref={rail} onScroll={e=>{const el=e.currentTarget; clearTimeout(Number(el.dataset.timer)); el.dataset.timer=String(setTimeout(()=>setView(Math.round(el.scrollLeft/el.clientWidth)),80))}}>
-   <section className="view" aria-label="History"><History workouts={data.workouts} onEdit={editWorkout}/></section>
-   <section className="view current-workout-view" tabIndex={0} aria-label="Current week"><CurrentWeek active={view===1} version={current} versions={data.versions} exercises={data.exercises} catalogue={data.catalogue??[]} workouts={data.workouts} onSubmit={submit} editDate={editDate} onEditDateOpened={editDateOpened} onCancelEdit={cancelEdit}/></section>
-   <section className="view" aria-label="Stats"><Stats stats={data.stats}/></section>
-   <section className="view markdown" aria-label="Context"><ReactMarkdown>{contextText}</ReactMarkdown></section>
- </div></div>;
+ const PAGES=[{id:'history',label:'History',Icon:HistoryIcon},{id:'current',label:'Current week',Icon:Dumbbell},{id:'stats',label:'Stats',Icon:ChartColumn},{id:'context',label:'Context',Icon:BookOpen}];
+ return <div className="app"><SwipeRail index={view} onIndexChange={setView} ariaLabel="Workout views">
+   <section aria-label="History"><History workouts={data.workouts} onEdit={editWorkout}/></section>
+   <section className="current-workout-view" tabIndex={0} aria-label="Current week"><CurrentWeek active={view===1} version={current} versions={data.versions} exercises={data.exercises} catalogue={data.catalogue??[]} workouts={data.workouts} onSubmit={submit} editDate={editDate} onEditDateOpened={editDateOpened} onCancelEdit={cancelEdit}/></section>
+   <section aria-label="Stats"><Stats stats={data.stats}/></section>
+   <section className="markdown" aria-label="Context"><ReactMarkdown>{contextText}</ReactMarkdown></section>
+ </SwipeRail><BottomNav items={PAGES} activeId={PAGES[view].id} onChange={id=>setView(PAGES.findIndex(p=>p.id===id))} ariaLabel="Otgymanya"/></div>;
 }

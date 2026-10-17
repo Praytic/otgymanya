@@ -23,14 +23,14 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  await page.route('**/api/v1/bootstrap',r=>r.fulfill({json:{versions,exercises,workouts,stats:[]}}));
  await page.route('**/api/v1/results/session',async r=>{writes++;workouts=(await r.request().postDataJSON()).results;return r.fulfill({status:204})});
  await page.goto('/gym/');
- await expect(page.locator('nav')).toHaveCount(0);
- await expect.poll(()=>page.locator('.rail').evaluate(e=>e.scrollLeft)).toBeGreaterThan(300);
+ await expect(page.locator('nav')).toHaveCount(1);
+ await expect.poll(()=>page.locator('.swipe-rail').evaluate(e=>e.scrollLeft)).toBeGreaterThan(300);
  await expect(page.getByRole('heading',{name:"Today's workout"})).toBeInViewport();
  const rootOverflow=await page.evaluate(()=>({html:getComputedStyle(document.documentElement).overflowY,body:getComputedStyle(document.body).overflowY}));
  expect(rootOverflow).toEqual({html:'visible',body:'visible'});
  await expect(page.getByRole('button',{name:/Bench Press/})).toBeVisible();
  await expect(page.getByRole('button',{name:/Bent Over Row/})).toBeVisible();
- await expect(page.locator('.view').nth(1).evaluate(view=>getComputedStyle(view).overflowY)).resolves.toBe('auto');
+ await expect(page.locator('.swipe-view').nth(1).evaluate(view=>getComputedStyle(view).overflowY)).resolves.toBe('auto');
  await expect(page.getByRole('button',{name:'All workout days',exact:true})).toHaveCount(0);
  await expect(page.getByLabel('Bench Press set 1 reps')).toHaveCount(0);
  await page.getByRole('button',{name:/Bench Press/}).click();
@@ -62,7 +62,7 @@ test('mobile workout editor groups a day and submits it as one replacement',asyn
  await expect(page.getByLabel('Bent Over Row comment')).toHaveValue('Keep this note');
  await page.getByLabel('Remove Bent Over Row').click();
  await expect(page.locator('.lucide-icon')).not.toHaveCount(0);
- await expect(page.locator('.view').nth(1).evaluate(view=>view.scrollWidth<=view.clientWidth)).resolves.toBe(true);
+ await expect(page.locator('.swipe-view').nth(1).evaluate(view=>view.scrollWidth<=view.clientWidth)).resolves.toBe(true);
  await page.getByRole('button',{name:'Submit workout'}).click();
  await expect.poll(()=>writes).toBe(1);
  await expect(page.getByText('Submitted')).toBeVisible();
@@ -170,7 +170,7 @@ test('history expands workouts and preserves recorded exercise order',async({pag
  ];
  await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions:[{id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''}],exercises:[],workouts,stats:[]}}));
  await page.goto('/gym/');
- await page.locator('.rail').evaluate(element=>element.scrollTo({left:0}));
+ await page.locator('.swipe-rail').evaluate(element=>element.scrollTo({left:0}));
  const workout=page.getByRole('button',{name:/2026-08-31.*2 exercises/});
  await expect(workout).toBeVisible();
  await expect(page.getByRole('heading',{name:'Bent Over Row'})).toHaveCount(0);
@@ -189,7 +189,7 @@ test('opens a historical workout in the editor and saves its changes',async({pag
  await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions:[cachedVersion],exercises:[cachedExercise],workouts,stats:[]}}));
  await page.route('**/api/v1/results/session',async route=>{writes++;submitted=route.request().postDataJSON();workouts=submitted.results;await route.fulfill({status:204})});
  await page.goto('/gym/');
- await page.locator('.rail').evaluate(element=>element.scrollTo({left:0}));
+ await page.locator('.swipe-rail').evaluate(element=>element.scrollTo({left:0}));
  await page.getByRole('button',{name:/2026-09-02.*1 exercise/}).click();
  await page.getByRole('button',{name:'Edit workout'}).click();
  await expect(page.getByRole('heading',{name:'Edit workout'})).toBeInViewport();
@@ -217,7 +217,7 @@ test('stats uses expandable exercise blocks instead of pages',async({page})=>{
  ];
  await page.route('**/api/v1/bootstrap',route=>route.fulfill({json:{versions:[{id:'v1',name:'Test routine',effectiveFrom:'2026-01-01',effectiveTo:'',cycleWeeks:6,notes:''}],exercises:[],workouts:[],stats}}));
  await page.goto('/gym/');
- await page.locator('.rail').evaluate(element=>element.scrollTo({left:element.clientWidth*2}));
+ await page.locator('.swipe-rail').evaluate(element=>element.scrollTo({left:element.clientWidth*2}));
  await expect(page.getByRole('heading',{name:'Stats'})).toBeInViewport();
  const bench=page.getByRole('button',{name:'Bench Press'});
  const row=page.getByRole('button',{name:'Bent Over Row'});
@@ -258,7 +258,7 @@ test('browse workout days, retain drafts, and submit a past or upcoming date',as
  await page.getByRole('button',{name:'Submit workout'}).click();
  await expect(page.getByText('Submitted',{exact:true})).toBeVisible();
  expect(submitted.sessionDate).toBe('2026-08-26');
- await expect(page.locator('.view').nth(1).evaluate(view=>view.scrollWidth<=view.clientWidth)).resolves.toBe(true);
+ await expect(page.locator('.swipe-view').nth(1).evaluate(view=>view.scrollWidth<=view.clientWidth)).resolves.toBe(true);
  await revealEdge(page,1);await page.getByRole('button',{name:/Next workout: Friday/}).click();
  await revealEdge(page,1);await page.getByRole('button',{name:/Next workout: Wednesday/}).click();
  await expect(page.getByRole('heading',{name:"Today's workout"})).toBeVisible();
@@ -272,7 +272,7 @@ async function navigationFixture(page:import('@playwright/test').Page){
  await page.clock.pauseAt(new Date('2026-09-02T12:01:00'));
 }
 async function touch(page:import('@playwright/test').Page,type:string,y:number){
- await page.locator('[aria-label="Current week"]').evaluate((view,{type,y})=>{
+ await page.locator('section[aria-label="Current week"]').evaluate((view,{type,y})=>{
   const point=new Touch({identifier:1,target:view,clientX:200,clientY:y});
   view.dispatchEvent(new TouchEvent(type,{bubbles:true,cancelable:true,touches:type==='touchend'?[]:[point]}));
  },{type,y});
@@ -280,7 +280,7 @@ async function touch(page:import('@playwright/test').Page,type:string,y:number){
 test('touch pressure needs half a second at an edge and cancels on release',async({page})=>{
  await navigationFixture(page);
  await page.getByRole('button',{name:/Bench Press.*reps/}).click();
- const view=page.locator('[aria-label="Current week"]');
+ const view=page.locator('section[aria-label="Current week"]');
  await view.evaluate(el=>el.scrollTop=100);
  await touch(page,'touchstart',600);await touch(page,'touchmove',550);await touch(page,'touchmove',500);
  await page.clock.runFor(600);
@@ -302,7 +302,7 @@ test('touch pressure needs half a second at an edge and cancels on release',asyn
 test('Mac wheel pressure advances once, while ordinary PC wheel does not',async({page})=>{
  await page.addInitScript(()=>Object.defineProperty(navigator,'platform',{configurable:true,get:()=> 'Win32'}));
  await navigationFixture(page);
- const view=page.locator('[aria-label="Current week"]');
+ const view=page.locator('section[aria-label="Current week"]');
  const wheel=()=>view.dispatchEvent('wheel',{deltaY:50,deltaX:0});
  await view.evaluate(el=>el.scrollTop=el.scrollHeight);
  for(let i=0;i<7;i++){await wheel();await page.clock.runFor(100)}
@@ -315,7 +315,7 @@ test('Mac wheel pressure advances once, while ordinary PC wheel does not',async(
 });
 
 async function revealEdge(page:import('@playwright/test').Page,direction:number){
- const view=page.locator('[aria-label="Current week"]');
+ const view=page.locator('section[aria-label="Current week"]');
  await view.evaluate((el,d)=>el.scrollTop=d===1?el.scrollHeight:0,direction);
  // Allow the prior page transition and gesture lock to settle.
  await page.waitForTimeout(320);
@@ -357,7 +357,7 @@ test('workout header explains a transition from a six-week cycle to a weekly rou
 test('edge popup stays hidden until an extra scroll and disappears on reversal',async({page})=>{
  await navigationFixture(page);
  await page.getByRole('button',{name:/Bench Press.*reps/}).click();
- const view=page.locator('[aria-label="Current week"]');
+ const view=page.locator('section[aria-label="Current week"]');
  await expect(page.locator('.workout-edge')).toHaveCount(0);
  await view.evaluate(el=>el.scrollTop=100);
  await view.dispatchEvent('wheel',{deltaY:100});
@@ -394,7 +394,7 @@ test('edge popup stays hidden until an extra scroll and disappears on reversal',
 test('native Android touch scrolls content before revealing the next-page popup',async({page,context})=>{
  await navigationFixture(page);
  await page.getByRole('button',{name:/Bench Press.*reps/}).click();
- const view=page.locator('[aria-label="Current week"]');
+ const view=page.locator('section[aria-label="Current week"]');
  const cdp=await context.newCDPSession(page);
  const send=(type:string,y:number)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x:30,y}]});
  await send('touchStart',700);

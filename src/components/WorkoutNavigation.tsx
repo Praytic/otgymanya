@@ -23,7 +23,7 @@ export function WorkoutNavigation({previous,next,previousWeekday,nextWeekday,pag
   navigate.current(d);
  };
  useLayoutEffect(()=>{
-  const content=root.current;const view=content?.closest<HTMLElement>('.view');
+  const content=root.current;const view=content?.closest<HTMLElement>('.swipe-view');
   if(!content||!view)return;
   const d=transition.current;
   // Backwards pagination lands at the previous page's bottom, forwards at its top.
@@ -35,7 +35,7 @@ export function WorkoutNavigation({previous,next,previousWeekday,nextWeekday,pag
   }
  },[pageKey]);
  useEffect(()=>{
-  const view=root.current?.closest<HTMLElement>('.view');
+  const view=root.current?.closest<HTMLElement>('.swipe-view');
   if(!view||!active)return;
   let timer:ReturnType<typeof setTimeout>|undefined;
   let idle:ReturnType<typeof setTimeout>|undefined;
