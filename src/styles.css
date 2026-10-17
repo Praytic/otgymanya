@@ -1,4 +1,4 @@
-:root{color:var(--app-text);background:var(--app-background);font-synthesis:none;--gym-accent:var(--gym-accent)}
+:root{color:var(--app-text);background:var(--app-background);font-synthesis:none;--gym-accent:#526f75}
 *{box-sizing:border-box}
 html,body,#root{height:100%}
 body{margin:0}
